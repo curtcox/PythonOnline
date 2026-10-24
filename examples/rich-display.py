@@ -1,0 +1,5 @@
+from IPython.display import HTML, SVG, Markdown, display
+
+display(Markdown("## Hello, rich output\n**Python** can show more than text."))
+display(HTML("<table><tr><th>Feature</th><th>Status</th></tr><tr><td>Sandboxed HTML</td><td>Ready</td></tr></table>"))
+display(SVG('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="100"><circle cx="150" cy="50" r="40" fill="#167c80"/></svg>'))

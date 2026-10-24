@@ -410,3 +410,27 @@ Each phase is one or a few commits pushed to `main` (deploying as it goes).
   the update script regenerates the optional package list.
 - **Future (v2) ideas, not in v1:** multiple files/modules and data-file uploads (as GnuplotOnline
   has), interactive `input()` via a coi-serviceworker shim, matplotlib interactivity, a REPL pane.
+
+
+## Implementation status (2026-10-24)
+
+The v1 implementation is present: editor/worker engine, stdin, auto-run and Stop,
+rich display and matplotlib, turtle recording/replay/exports, sharing and QR,
+HashBin store/panel, mobile layout, 21-sample gallery and generated previews,
+PWA/offline caching, tests, CI, licenses, README and contributor instructions.
+
+Verified implementation adjustments:
+
+- Pyodide 314.0.7 requires a **module worker** importing `pyodide.mjs`; classic
+  `importScripts` workers are rejected. Its engine file is `pyodide.asm.mjs`.
+- Figure PNGs are captured alongside SVGs, so downloads survive worker termination.
+- The default turtle scene uses the documented recording subset; cursor visibility,
+  screen titles, timing, and stamp shapes have the limitations described in `docs/turtle.md`.
+- GitHub Pages was already configured with `build_type: workflow`.
+- HashBin's public client ID remains intentionally empty pending registration.
+
+Local validation includes real Pyodide execution and all gallery previews, Python
+unit tests, Node tests with matplotlib, Chromium's full gallery suite, and WebKit's
+browser suite, including mobile and offline reload. The installed macOS Firefox
+fails before loading the app with “Could not find profile folder”; the Linux CI
+matrix exercises Firefox independently.
