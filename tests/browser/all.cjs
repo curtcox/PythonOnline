@@ -9,13 +9,16 @@ const server = http.createServer((req,res) => {
   const url = new URL(req.url, 'http://localhost');
   let file;
   if (url.pathname === '/__hashbin_sdk__.js') { res.writeHead(200,{'Content-Type':'text/javascript'}); res.end(fs.readFileSync(path.join(root,'tests/browser/fixtures/hashbin-sdk.mjs'))); return; }
-  if (url.pathname.startsWith('/__pyodide__/')) {
+  if (url.pathname.startsWith('/__256t__/')) file = path.join(root,'tests/fixtures/256t',path.basename(url.pathname));
+  else if (url.pathname.startsWith('/__pyodide__/')) {
     const name = path.basename(url.pathname); file = [path.join(root,'node_modules/pyodide',name),path.join(root,'.pyodide-cache',name)].find(file=>fs.existsSync(file));
   } else file = path.join(root, decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
   if (!file || !file.startsWith(root + path.sep) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); res.end('Not found'); return; }
   let data = fs.readFileSync(file);
   if (/\.(?:js|mjs)$/.test(file) && !file.includes('node_modules')) data = Buffer.from(data.toString().replaceAll('https://cdn.jsdelivr.net/pyodide/v314.0.7/full/',base+'/__pyodide__/'));
   if (path.basename(file) === 'index.html' && url.searchParams.has('hashbin-test')) data = Buffer.from(data.toString().replace(/name="hashbin-client-id" content="[^"]*"/,'name="hashbin-client-id" content="test-client"'));
+  // Saved programs come from checked-in copies, as 256t.us serves them.
+  if (path.basename(file) === 't256.py') data = Buffer.from(data.toString().replace("SERVERS = ['https://256t.us/', 'https://256t.org/']",`SERVERS = ['${base}/__256t__/']`));
   if (path.basename(file) === 'hashbin.js') data = Buffer.from(data.toString().replace('https://hashbin.org/sdk/hashbin.js',base+'/__hashbin_sdk__.js'));
   res.writeHead(200, {'Content-Type':mime[path.extname(file)] || 'application/octet-stream','Cache-Control':'no-cache'}); res.end(data);
 });
@@ -67,7 +70,9 @@ const timeout = 120000;
     await page.locator('#download-open').click(); const png = page.waitForEvent('download'); await page.locator('#download-png').click(); assert.equal((await png).suggestedFilename(),'image.png'); await page.locator('[data-close="download-dialog"]').click();
     await run('import pandas as pd\ndisplay(pd.DataFrame({"value":[1,2]}))'); await page.locator('#output iframe').waitFor();
     console.log('Checking gallery');
-    await page.goto(base+'/gallery.html'); assert.equal(await page.locator('#gallery article').count(),24); await page.locator('#search').fill('snowflake'); assert.equal(await page.locator('#gallery article').count(),1);
+    await page.goto(base+'/gallery.html'); assert.equal(await page.locator('#gallery article').count(),25); await page.locator('#search').fill('snowflake'); assert.equal(await page.locator('#gallery article').count(),1);
+    await page.goto(base+'/?example=256t-function&run=0'); await ready(); await page.evaluate(()=>PythonOnline.run()); await finished();
+    assert.match(await page.locator('#output').innerText(),/roman\(2026\) = MMXXVI[\s\S]*Hello, Ada!/);
     if (process.env.FULL_GALLERY) {
       // Validate sample execution independently of the auto-run limit on slower CI hosts.
       // The default auto-run and its five-second timeout are exercised above.

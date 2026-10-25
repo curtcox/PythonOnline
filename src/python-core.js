@@ -40,11 +40,10 @@ function harden(scope = globalThis) {
 }
 class PythonCore {
   constructor(pyodide, emit) { this.pyodide = pyodide; this.emit = emit; }
-  install({ runtime, turtle }) {
+  install(modules) {
     const py = this.pyodide, directory = '/home/pyodide/_pythononline';
     py.FS.mkdirTree(directory);
-    py.FS.writeFile(directory + '/runtime.py', runtime);
-    py.FS.writeFile(directory + '/turtle.py', turtle);
+    for (const [name, source] of Object.entries(modules)) py.FS.writeFile(`${directory}/${name}.py`, source);
     py.runPython(`import sys, os\nsys.path.insert(0, '${directory}')\nos.environ['MPLBACKEND'] = 'agg'\nimport runtime`);
   }
   async run({ id, source, stdin = '' }) {

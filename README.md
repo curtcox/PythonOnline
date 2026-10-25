@@ -10,6 +10,7 @@ A static, build-free GitHub Pages app. CPython **3.14.2** runs as WebAssembly th
 - Ordered console, matplotlib SVG/PNG figures, turtle drawings with replay and skip controls, pandas tables, Pillow images, HTML, SVG, and Markdown.
 - Packages from the Pyodide distribution load from imports. Pure-Python PyPI packages can be installed with `await micropip.install(...)` or PEP 723 metadata.
 - Share source and input in compressed links, opt out of running on open, shorten through is.gd, or export a QR code. HashBin loads CIDs and supports authenticated saves.
+- Save a function to HashBin once, then call it from later programs by its 256t string with the built-in [`t256` module](docs/256t-calls.md).
 - Download source, console text, figures, and turtle SVG/PNG. Phone layouts have Output / Code / Input tabs and More controls.
 - Installable PWA, atomic offline setup, and first-use package caching. Optional gallery-package caching makes NumPy, matplotlib, pandas, Pillow, and micropip available offline.
 
@@ -27,7 +28,7 @@ The site itself needs no Node build. Node is used for tests and preview maintena
 python3 -m unittest discover -s tests
 npm test
 TEST_PACKAGES=1 npm test       # also exercises real matplotlib; downloads on first use
-npm run gallery               # runs all 24 samples with pinned Pyodide; requires internet for PyPI
+npm run gallery               # runs all 25 samples with pinned Pyodide; requires internet for PyPI and 256t servers
 npm run offline               # regenerate after changing any shipped file
 npm run check                 # JS syntax, source/preview fingerprints, offline content hashes
 npx playwright install chromium firefox webkit

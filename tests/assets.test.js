@@ -18,6 +18,6 @@ test('offline manifest covers HTML references, runtime files, examples and worke
       assert.ok(assets.includes(path),`${html}: missing ${path}`);
     }
   }
-  for (const path of ['src/python-core.js','src/python-worker.js','src/py/runtime.py','src/py/turtle.py']) assert.ok(assets.includes(path));
+  for (const path of ['src/python-core.js','src/python-worker.js','src/py/runtime.py','src/py/turtle.py','src/py/t256.py']) assert.ok(assets.includes(path));
   for (const sample of require('../src/examples.js').catalog) { assert.equal(fs.readFileSync('examples/'+sample.id+'.py','utf8'),sample.src); assert.ok(assets.includes('gallery/previews/'+sample.id+'.svg')); }
 });

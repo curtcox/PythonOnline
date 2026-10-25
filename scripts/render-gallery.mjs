@@ -15,14 +15,30 @@ if (process.argv.includes('--check')) {
   }
   console.log(`${catalog.length} gallery sources and previews verified.`);
 } else {
+  // Pyodide's open_url needs synchronous XMLHttpRequest, which Node lacks. Prefetch the 256t
+  // strings each sample names so it fetches the same text it would in a browser.
+  const prefetched = new Map();
+  globalThis.XMLHttpRequest = class {
+    open(method, url) { this.url = url; }
+    send() { this.response = this.responseText = prefetched.get(this.url) ?? ''; this.status = prefetched.has(this.url) ? 200 : 404; }
+  };
+  const prefetch = async source => {
+    for (const [, cid] of source.matchAll(/"([A-Za-z0-9_-]{94})"/g)) for (const server of ['https://256t.us/', 'https://256t.org/']) {
+      const response = await fetch(server + cid);
+      if (response.ok) prefetched.set(server + cid, await response.text());
+    }
+  };
   const { loadPyodide } = require('pyodide');
   await fs.mkdir(new URL('.pyodide-cache/', root), { recursive: true });
   const py = await loadPyodide({ packageCacheDir: new URL('.pyodide-cache/', root).pathname });
   let items = [];
   const core = new PythonCore(py, item => items.push(item));
-  core.install({ runtime: await fs.readFile(new URL('src/py/runtime.py', root), 'utf8'), turtle: await fs.readFile(new URL('src/py/turtle.py', root), 'utf8') });
+  const modules = {};
+  for (const name of ['runtime', 'turtle', 't256']) modules[name] = await fs.readFile(new URL(`src/py/${name}.py`, root), 'utf8');
+  core.install(modules);
   for (const sample of catalog) {
     items = [];
+    await prefetch(sample.src);
     const result = await core.run({ id: sample.id, source: sample.src, stdin: sample.stdin });
     if (!result.ok) throw Error(sample.id + ': ' + result.error);
     const visual = items.find(item => ['figure','turtle','svg','png'].includes(item.type));

@@ -8,7 +8,7 @@ test.before(async () => {
   const { loadPyodide } = require('pyodide');
   const py = await loadPyodide({ packageCacheDir: '.pyodide-cache' });
   core = new PythonCore(py, item => items.push(item));
-  core.install({ runtime: fs.readFileSync('src/py/runtime.py', 'utf8'), turtle: fs.readFileSync('src/py/turtle.py', 'utf8') });
+  core.install(Object.fromEntries(['runtime', 'turtle', 't256'].map(name => [name, fs.readFileSync(`src/py/${name}.py`, 'utf8')])));
 });
 async function run(source, stdin = '') { items = []; const result = await core.run({ id: 1, source, stdin }); return { ...result, text: items.filter(i => i.type === 'text').map(i => i.text).join(''), items }; }
 test('real CPython prints, echoes input, handles EOF and keeps ordered rich output', async () => {

@@ -7,13 +7,13 @@ const ready = (async () => {
   const start = performance.now();
   send({ type: 'status', text: 'Loading Python… (~12 MB on first visit)' });
   const { loadPyodide } = await import(PYODIDE_URL + 'pyodide.mjs');
-  const [pyodide, runtime, turtle] = await Promise.all([
+  const modules = ['runtime', 'turtle', 't256'];
+  const [pyodide, ...sources] = await Promise.all([
     loadPyodide({ indexURL: PYODIDE_URL }),
-    fetch('py/runtime.py').then(response => { if (!response.ok) throw Error('Runtime download failed'); return response.text(); }),
-    fetch('py/turtle.py').then(response => { if (!response.ok) throw Error('Turtle download failed'); return response.text(); })
+    ...modules.map(name => fetch(`py/${name}.py`).then(response => { if (!response.ok) throw Error(`${name}.py download failed`); return response.text(); }))
   ]);
   core = new PythonCore(pyodide, send);
-  core.install({ runtime, turtle });
+  core.install(Object.fromEntries(modules.map((name, index) => [name, sources[index]])));
   harden(self);
   send({ type: 'ready', ms: performance.now() - start });
 })().catch(error => { send({ type: 'fatal', error: String(error) }); throw error; });
