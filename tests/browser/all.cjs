@@ -126,7 +126,8 @@ const timeout = 120000;
     // The gallery reads a new deploy from the network while the editor keeps its cached version.
     const gallery = await context.newPage(); freshLabel = 'Hello, deployed Python';
     await gallery.goto(base+'/gallery.html'); assert.equal(await gallery.locator('.card h2').first().textContent(),freshLabel);
-    await context.setOffline(true); await gallery.reload(); assert.equal(await gallery.locator('.card h2').first().textContent(),'Hello, Python');
+    // Offline it falls back to the cache. Firefox may answer from its HTTP cache first instead.
+    await context.setOffline(true); await gallery.reload(); assert.match(await gallery.locator('.card h2').first().textContent(),engine === 'firefox' ? /^Hello, (?:deployed )?Python$/ : /^Hello, Python$/);
     await context.setOffline(false); await gallery.close(); freshLabel = '';
     await page.evaluate(()=>{const sample=PythonExamples.catalog[0];PythonOnline.editor.setValue(sample.src,-1);document.getElementById('stdin').value=sample.stdin;document.getElementById('stdin').dispatchEvent(new Event('input'));PythonOnline.run();}); await finished();
     await page.getByRole('button',{name:'Skip animation',exact:true}).click();
