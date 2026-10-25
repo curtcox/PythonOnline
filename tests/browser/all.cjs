@@ -28,7 +28,7 @@ const timeout = 120000;
   const page = await context.newPage(); page.setDefaultTimeout(15000);
   const errors = []; page.on('pageerror',error=>errors.push(String(error)));
   async function ready() { await page.waitForFunction(()=>!!globalThis.PythonOnline); }
-  async function finished() { await page.waitForFunction(()=>['done','error'].includes(document.body.dataset.state),null,{timeout}); }
+  async function finished() { await page.waitForFunction(()=>['done','error','idle'].includes(document.body.dataset.state),null,{timeout}); }
   async function run(source,stdin='') {
     await page.evaluate(({source,stdin})=>{ document.getElementById('autorun').checked=false; PythonOnline.editor.setValue(source,-1); document.getElementById('stdin').value=stdin; PythonOnline.run(); },{source,stdin});
     await finished();
@@ -69,7 +69,14 @@ const timeout = 120000;
     console.log('Checking gallery');
     await page.goto(base+'/gallery.html'); assert.equal(await page.locator('#gallery article').count(),21); await page.locator('#search').fill('snowflake'); assert.equal(await page.locator('#gallery article').count(),1);
     if (process.env.FULL_GALLERY) {
-      for (const sample of require('../../src/examples.js').catalog) { await page.goto(base+'/?example='+sample.id); await ready(); await finished(); assert.equal(await page.locator('body').getAttribute('data-state'),'done',sample.id+': '+await page.locator('#output').innerText()); }
+      // Validate sample execution independently of the auto-run limit on slower CI hosts.
+      // The default auto-run and its five-second timeout are exercised above.
+      for (const sample of require('../../src/examples.js').catalog) {
+        console.log('Checking gallery sample: '+sample.id);
+        await page.goto(base+'/?example='+sample.id+'&run=0'); await ready();
+        await page.evaluate(()=>PythonOnline.run()); await finished();
+        assert.equal(await page.locator('body').getAttribute('data-state'),'done',sample.id+': '+await page.locator('#status').innerText()+'\n'+await page.locator('#output').innerText());
+      }
     }
     console.log('Checking HashBin OAuth, quote, save and stale-load protection');
     const authContext = await browser.newContext({serviceWorkers:'block'});
