@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs'); const path = require('node:path'); const http = require('node:http');
 const root = path.resolve(__dirname, '../..');
 const mime = {'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.json':'application/json','.wasm':'application/wasm','.webmanifest':'application/manifest+json','.png':'image/png'};
-let base;
+let base, freshLabel = '';
 const server = http.createServer((req,res) => {
   const url = new URL(req.url, 'http://localhost');
   let file;
@@ -19,6 +19,7 @@ const server = http.createServer((req,res) => {
   if (path.basename(file) === 'index.html' && url.searchParams.has('hashbin-test')) data = Buffer.from(data.toString().replace(/name="hashbin-client-id" content="[^"]*"/,'name="hashbin-client-id" content="test-client"'));
   // Saved programs come from checked-in copies, as 256t.us serves them.
   if (path.basename(file) === 't256.py') data = Buffer.from(data.toString().replace("SERVERS = ['https://256t.us/', 'https://256t.org/']",`SERVERS = ['${base}/__256t__/']`));
+  if (path.basename(file) === 'examples.js' && freshLabel) data = Buffer.from(data.toString().replace('"label": "Hello, Python"',`"label": "${freshLabel}"`));
   if (path.basename(file) === 'hashbin.js') data = Buffer.from(data.toString().replace('https://hashbin.org/sdk/hashbin.js',base+'/__hashbin_sdk__.js'));
   res.writeHead(200, {'Content-Type':mime[path.extname(file)] || 'application/octet-stream','Cache-Control':'no-cache'}); res.end(data);
 });
@@ -122,6 +123,11 @@ const timeout = 120000;
     await page.setViewportSize({width:1280,height:800}); await page.waitForFunction(()=>!!navigator.serviceWorker.controller,null,{timeout});
     await page.waitForFunction(()=>document.getElementById('offline-status').textContent==='Available offline',null,{timeout});
     await context.setOffline(true); await page.reload(); await ready(); await run('print("offline success")'); assert.match(await page.locator('#output').innerText(),/offline success/); await context.setOffline(false);
+    // The gallery reads a new deploy from the network while the editor keeps its cached version.
+    const gallery = await context.newPage(); freshLabel = 'Hello, deployed Python';
+    await gallery.goto(base+'/gallery.html'); assert.equal(await gallery.locator('.card h2').first().textContent(),freshLabel);
+    await context.setOffline(true); await gallery.reload(); assert.equal(await gallery.locator('.card h2').first().textContent(),'Hello, Python');
+    await context.setOffline(false); await gallery.close(); freshLabel = '';
     await page.evaluate(()=>{const sample=PythonExamples.catalog[0];PythonOnline.editor.setValue(sample.src,-1);document.getElementById('stdin').value=sample.stdin;document.getElementById('stdin').dispatchEvent(new Event('input'));PythonOnline.run();}); await finished();
     await page.getByRole('button',{name:'Skip animation',exact:true}).click();
     await page.screenshot({path:path.join(root,'test-results',engine+'-desktop.png'),fullPage:true});

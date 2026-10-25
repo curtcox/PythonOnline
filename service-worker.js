@@ -20,7 +20,20 @@ async function populate() {
     }));
   } catch (error) { if (!existed) await caches.delete(CACHE); throw error; }
 }
-self.addEventListener('install', event => event.waitUntil(populate()));
+const editorPaths = () => { const scope = new URL(self.registration.scope).pathname; return [scope, scope + 'index.html']; };
+const isEditor = page => editorPaths().includes(new URL(page.url ?? page).pathname);
+self.addEventListener('install', event => event.waitUntil((async () => {
+  await populate();
+  // Only an open editor holds work to protect; without one the update can take over at once.
+  const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  if (!windows.some(isEditor)) await self.skipWaiting();
+})()));
+// The gallery and docs hold no editor work, so they read the network first and show each deploy.
+async function readOnlyPage(event, url) {
+  if (event.request.mode === 'navigate') return url.origin === self.location.origin && !isEditor(url);
+  const client = event.clientId && await self.clients.get(event.clientId);
+  return client?.type === 'window' && !isEditor(client);
+}
 self.addEventListener('activate', event => event.waitUntil((async () => {
   await self.clients.claim();
   // Older page clients can continue using their matching assets until they reload.
@@ -38,6 +51,10 @@ self.addEventListener('fetch', event => {
     // Query strings carry documents or version tags, never change the static bytes.
     const key = url.origin === self.location.origin ? url.origin + url.pathname : url.href;
     const navigation = event.request.mode === 'navigate';
+    if (inScope && await readOnlyPage(event, url)) {
+      try { return await fetch(event.request); }
+      catch (error) { const cached = await cache.match(key); if (cached) return cached; throw error; }
+    }
     let cached = await cache.match(key);
     if (!cached && navigation && (url.pathname.endsWith('/') || url.pathname.endsWith('/index.html'))) cached = await cache.match(absolute('index.html'));
     if (cached) return cached;
