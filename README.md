@@ -27,7 +27,7 @@ The site itself needs no Node build. Node is used for tests and preview maintena
 python3 -m unittest discover -s tests
 npm test
 TEST_PACKAGES=1 npm test       # also exercises real matplotlib; downloads on first use
-npm run gallery               # runs all 21 samples with pinned Pyodide; requires internet for PyPI
+npm run gallery               # runs all 24 samples with pinned Pyodide; requires internet for PyPI
 npm run offline               # regenerate after changing any shipped file
 npm run check                 # JS syntax, source/preview fingerprints, offline content hashes
 npx playwright install chromium firefox webkit

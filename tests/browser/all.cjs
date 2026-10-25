@@ -67,7 +67,7 @@ const timeout = 120000;
     await page.locator('#download-open').click(); const png = page.waitForEvent('download'); await page.locator('#download-png').click(); assert.equal((await png).suggestedFilename(),'image.png'); await page.locator('[data-close="download-dialog"]').click();
     await run('import pandas as pd\ndisplay(pd.DataFrame({"value":[1,2]}))'); await page.locator('#output iframe').waitFor();
     console.log('Checking gallery');
-    await page.goto(base+'/gallery.html'); assert.equal(await page.locator('#gallery article').count(),21); await page.locator('#search').fill('snowflake'); assert.equal(await page.locator('#gallery article').count(),1);
+    await page.goto(base+'/gallery.html'); assert.equal(await page.locator('#gallery article').count(),24); await page.locator('#search').fill('snowflake'); assert.equal(await page.locator('#gallery article').count(),1);
     if (process.env.FULL_GALLERY) {
       // Validate sample execution independently of the auto-run limit on slower CI hosts.
       // The default auto-run and its five-second timeout are exercised above.
