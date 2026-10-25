@@ -12,7 +12,7 @@ const PythonExamples = {
       "src": "def greet(name):\n    return f\"Hello, {name}!\"\n\nfor _ in range(3):\n    print(greet(input(\"Your name: \")))\n\nimport turtle as t\nt.speed(0)\nt.color(\"#167c80\")\nfor side in range(36):\n    t.forward(100)\n    t.left(170)\nprint(\"Try changing the angle or the names below.\")\n",
       "stdin": "Ada\nGrace\nGuido\n",
       "description": "Functions, f-strings, input, and a little turtle flourish.",
-      "docs": "docs/turtle.md"
+      "docs": "docs/turtle.html"
     },
     {
       "id": "input-numbers",
@@ -140,7 +140,7 @@ const PythonExamples = {
       "src": "import turtle as t\nt.speed(0)\nt.pensize(2)\ncolors = [\"#167c80\", \"#e3a72f\", \"#d96245\", \"#4d65ae\"]\nfor step in range(100):\n    t.pencolor(colors[step % len(colors)])\n    t.forward(step * 2)\n    t.right(91)\n",
       "stdin": "",
       "description": "A four-color spiral made from a single loop.",
-      "docs": "docs/turtle.md"
+      "docs": "docs/turtle.html"
     },
     {
       "id": "star",
@@ -152,7 +152,7 @@ const PythonExamples = {
       "src": "import turtle as t\nt.speed(6)\nt.color(\"#b45c35\", \"#f5ca72\")\nt.begin_fill()\nfor _ in range(5):\n    t.forward(180)\n    t.right(144)\nt.end_fill()\n",
       "stdin": "",
       "description": "Draw and fill a five-pointed star.",
-      "docs": "docs/turtle.md"
+      "docs": "docs/turtle.html"
     },
     {
       "id": "tree",
@@ -165,7 +165,7 @@ const PythonExamples = {
       "src": "import turtle as t\nt.speed(0)\nt.left(90)\nt.penup()\nt.goto(0, -220)\nt.pendown()\ndef branch(length):\n    if length < 7:\n        return\n    t.pensize(max(1, length / 15))\n    t.color(\"#287653\" if length < 30 else \"#73503c\")\n    t.forward(length)\n    t.left(26)\n    branch(length * 0.72)\n    t.right(52)\n    branch(length * 0.72)\n    t.left(26)\n    t.penup()\n    t.backward(length)\n    t.pendown()\nbranch(110)\n",
       "stdin": "",
       "description": "Recursion grows a branching canopy.",
-      "docs": "docs/turtle.md"
+      "docs": "docs/turtle.html"
     },
     {
       "id": "koch",
@@ -178,7 +178,7 @@ const PythonExamples = {
       "src": "import turtle as t\nt.speed(0)\nt.color(\"#407ca0\")\nt.penup()\nt.goto(-180, 100)\nt.pendown()\ndef edge(length, depth):\n    if depth == 0:\n        t.forward(length)\n    else:\n        for turn in (60, -120, 60, 0):\n            edge(length / 3, depth - 1)\n            t.left(turn)\nfor _ in range(3):\n    edge(360, 3)\n    t.right(120)\n",
       "stdin": "",
       "description": "Build a snowflake by repeating a tiny rule.",
-      "docs": "docs/turtle.md"
+      "docs": "docs/turtle.html"
     },
     {
       "id": "color-wheel",
@@ -190,7 +190,7 @@ const PythonExamples = {
       "src": "import turtle as t\nimport colorsys\nt.speed(0)\nfor i in range(72):\n    t.color(colorsys.hsv_to_rgb(i / 72, 0.75, 0.85))\n    t.begin_fill()\n    t.forward(200)\n    t.left(90)\n    t.forward(12)\n    t.left(90)\n    t.forward(200)\n    t.left(185)\n    t.end_fill()\n",
       "stdin": "",
       "description": "Use RGB tuples and HSV to explore color.",
-      "docs": "docs/turtle.md"
+      "docs": "docs/turtle.html"
     },
     {
       "id": "waves",
@@ -281,7 +281,7 @@ const PythonExamples = {
       "src": "# Save this program with Save to HashBin. The HashBin box then shows its 256t string,\n# which names roman(). Any later program can use roman() without copying this code:\n#     import t256\n#     roman = t256.function(\"<the 256t string>\")\n# The sample \"A function from 256t\" does exactly that with this program's 256t string.\n\ndef roman(number):\n    \"\"\"Write a positive integer in Roman numerals.\"\"\"\n    numerals = [(1000, \"M\"), (900, \"CM\"), (500, \"D\"), (400, \"CD\"),\n                (100, \"C\"), (90, \"XC\"), (50, \"L\"), (40, \"XL\"),\n                (10, \"X\"), (9, \"IX\"), (5, \"V\"), (4, \"IV\"), (1, \"I\")]\n    letters = \"\"\n    for value, numeral in numerals:\n        count, number = divmod(number, value)\n        letters += numeral * count\n    return letters\n\n# This demo runs only when this program runs, not when another program uses roman().\nif __name__ == \"__main__\":\n    for year in [1987, 2026]:\n        print(f\"roman({year}) = {roman(year)}\")\n",
       "stdin": "",
       "description": "Write a function to save to HashBin. Its 256t string then lets any program use it without its code.",
-      "docs": "docs/256t-calls.md"
+      "docs": "docs/256t-calls.html"
     },
     {
       "id": "256t-function",
@@ -294,7 +294,7 @@ const PythonExamples = {
       "src": "# Use a function saved under a 256t string, without copying its code.\nimport t256\n\n# The sample \"Save a function for later\", saved to HashBin. Open it to read or change it:\n# https://curtcox.github.io/PythonOnline/#AAAAAARSol91VecUdbVI0JWpPD5P5VL8NLvxtedwwjen9KYnS3jyfhc2j38Y_DYFXyqFRSPP0xM9v9LKfZLpdUMgnnlptw\nROMAN = \"AAAAAARSol91VecUdbVI0JWpPD5P5VL8NLvxtedwwjen9KYnS3jyfhc2j38Y_DYFXyqFRSPP0xM9v9LKfZLpdUMgnnlptw\"\n# Text of 64 bytes or less is spelled out in its 256t string, so no server is needed.\nHELLO = \"AAAAAAAebGFtYmRhIG5hbWU6IGYiSGVsbG8sIHtuYW1lfSEi\"  # lambda name: f\"Hello, {name}!\"\n\nroman = t256.function(ROMAN)\nfor year in [1987, 2026]:\n    print(f\"roman({year}) = {roman(year)}\")\n\nhello = t256.function(HELLO)\nprint(hello(\"Ada\"))\n",
       "stdin": "",
       "description": "Use a saved function by its 256t string, with parameters from this program. Requires internet.",
-      "docs": "docs/256t-calls.md"
+      "docs": "docs/256t-calls.html"
     },
     {
       "id": "256t-call",
@@ -307,7 +307,7 @@ const PythonExamples = {
       "src": "# One 256t string names a function and its parameters. t256.call runs its last line.\nimport t256\n\n# A program saved to HashBin from examples/saved/top-words.py:\n# https://curtcox.github.io/PythonOnline/#AAAAAAIVLgqOwaRWadzTxEYFXUW_6ip-1Gyvg3yZp-nKnrKze7oX8dtwt_YUy_Qjcdg7tSqZEghefrf3jaQCKqwgHbh1xQ\nTOP_WORDS = \"AAAAAAIVLgqOwaRWadzTxEYFXUW_6ip-1Gyvg3yZp-nKnrKze7oX8dtwt_YUy_Qjcdg7tSqZEghefrf3jaQCKqwgHbh1xQ\"\nAREA = \"AAAAAAAaKGxhbWJkYSB3LCBoOiB3ICogaCkoNiwgNyk\"  # (lambda w, h: w * h)(6, 7)\n\nfor name, saved in [(\"TOP_WORDS\", TOP_WORDS), (\"AREA\", AREA)]:\n    print(f\"{name} ends with: {t256.source(saved).splitlines()[-1]}\")\n    print(\"  result:\", t256.call(saved))\n",
       "stdin": "",
       "description": "Call a saved program whose last line calls its function with parameters. Requires internet.",
-      "docs": "docs/256t-calls.md"
+      "docs": "docs/256t-calls.html"
     },
     {
       "id": "256t-apply",
@@ -320,7 +320,7 @@ const PythonExamples = {
       "src": "# Functions and parameters from different 256t strings combine freely.\nimport t256\n\n# Saved to HashBin from examples/saved/summary.py and examples/saved/pi-30.py:\n# https://curtcox.github.io/PythonOnline/#AAAAAAH9K9YJb-XC6frC32PnyXEisiwJAaUKjdUJZzVhkE7kcxbCpNjsEC6KO7Dx8aEV2YHr03Vkf0e0LSwvAAnMlD0dRA\nSUMMARY = \"AAAAAAH9K9YJb-XC6frC32PnyXEisiwJAaUKjdUJZzVhkE7kcxbCpNjsEC6KO7Dx8aEV2YHr03Vkf0e0LSwvAAnMlD0dRA\"\n# https://curtcox.github.io/PythonOnline/#AAAAAAD9N0ULMrrMFhuVpqN5TZa_UP1vTrDDym8k3lIwu4aHC7NbkP1ER-ViAIjVMvhTBW2ibhDOeD-IPgYqBh7R0-5t5A\nPI_30 = \"AAAAAAD9N0ULMrrMFhuVpqN5TZa_UP1vTrDDym8k3lIwu4aHC7NbkP1ER-ViAIjVMvhTBW2ibhDOeD-IPgYqBh7R0-5t5A\"\nTOTAL = \"AAAAAAATbGFtYmRhICp4czogc3VtKHhzKQ\"  # lambda *xs: sum(xs)\nLARGEST = \"AAAAAAATbGFtYmRhICp4czogbWF4KHhzKQ\"  # lambda *xs: max(xs)\nPI_5 = \"AAAAAAANMywgMSwgNCwgMSwgNQ\"  # 3, 1, 4, 1, 5\n\nfunctions = {\"TOTAL\": TOTAL, \"LARGEST\": LARGEST, \"SUMMARY\": SUMMARY}\nparameters = {\"PI_5\": PI_5, \"PI_30\": PI_30}\nprint(\" \" * 8, *(f\"{name:12}\" for name in parameters))\nfor name, function in functions.items():\n    print(f\"{name:8}\", *(f\"{t256.call(function, p)!s:12}\" for p in parameters.values()))\n\n# Keyword parameters work too.\nJOIN = \"AAAAAAArbGFtYmRhICp4cywgc2VwPSIgIjogc2VwLmpvaW4obWFwKHN0ciwgeHMpKQ\"  # lambda *xs, sep=\" \": sep.join(map(str, xs))\nTODAY = \"AAAAAAAVMjAyNiwgMTAsIDI1LCBzZXA9Ii0i\"  # 2026, 10, 25, sep=\"-\"\nprint(\"JOIN with TODAY:\", t256.call(JOIN, TODAY))\n",
       "stdin": "",
       "description": "Combine saved functions with parameters saved under other 256t strings. Requires internet.",
-      "docs": "docs/256t-calls.md"
+      "docs": "docs/256t-calls.html"
     }
   ]
 };

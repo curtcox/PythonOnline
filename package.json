@@ -8,6 +8,7 @@
     "test:browser": "node tests/browser/all.cjs",
     "check": "node scripts/check.mjs",
     "gallery": "node scripts/render-gallery.mjs",
+    "docs": "node scripts/render-docs.mjs",
     "offline": "node scripts/update-offline.mjs",
     "serve": "python3 -m http.server 8000"
   },

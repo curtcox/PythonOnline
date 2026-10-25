@@ -90,7 +90,7 @@ class TurtleTests(unittest.TestCase):
 
     def test_events_and_limits(self):
         for name in ('onclick', 'onkey', 'ontimer', 'listen'):
-            with self.subTest(name=name), self.assertRaisesRegex(NotImplementedError, 'docs/turtle.md'):
+            with self.subTest(name=name), self.assertRaisesRegex(NotImplementedError, 'docs/turtle.html'):
                 getattr(t, name)(lambda: None)
         t.Screen().commands = [{}] * t.MAX_COMMANDS
         with self.assertRaisesRegex(RuntimeError, '200,000'):

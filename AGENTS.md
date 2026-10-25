@@ -20,7 +20,7 @@ Static GitHub Pages Python IDE. No build step or backend. Work directly on `main
 1. Edit samples in both `src/examples.js` and `examples/*.py`.
 2. `npm run gallery` executes real Pyodide and regenerates previews/fingerprints. Internet is needed for gallery packages, its PyPI sample, and saved programs the 256t samples fetch. `src/py/t256.py` resolves 256t strings; keep `examples/saved/`, `examples/256t-save.py`, and `tests/fixtures/256t/` in sync (the Python tests check it).
 3. Run `python3 -m unittest discover -s tests`, `TEST_PACKAGES=1 npm test`, and relevant browser coverage.
-4. After changing shipped assets, run `npm run offline`, then `npm run check`.
+4. After editing `docs/*.md`, run `npm run docs` to regenerate the formatted `docs/*.html` pages the site links to. After changing shipped assets, run `npm run offline`, then `npm run check`.
 5. Browser tests: `npm run test:browser`; use `BROWSER=firefox` or `BROWSER=webkit`; `FULL_GALLERY=1` tests every gallery URL. Install Playwright browsers first. Node package wheels are cached in ignored `.pyodide-cache`.
 
 ## Publishing to HashBin from the shell

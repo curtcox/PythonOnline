@@ -19,7 +19,7 @@ def _finish():
 
 
 def _unsupported(*args, **kwargs):
-    raise NotImplementedError('Turtle event APIs are unavailable in Python Online. See docs/turtle.md (use loops to draw).')
+    raise NotImplementedError('Turtle event APIs are unavailable in Python Online. See docs/turtle.html (use loops to draw).')
 
 
 class _Screen:

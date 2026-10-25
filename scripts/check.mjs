@@ -14,5 +14,6 @@ async function walk(directory) {
 const files = await walk('');
 for (const file of files.filter(name => /\.(?:js|mjs|cjs)$/.test(name))) execFileSync(process.execPath, ['--check', new URL(file, root).pathname]);
 execFileSync(process.execPath, [new URL('scripts/render-gallery.mjs', root).pathname, '--check'], { stdio: 'inherit' });
+execFileSync(process.execPath, [new URL('scripts/render-docs.mjs', root).pathname, '--check'], { stdio: 'inherit' });
 execFileSync(process.execPath, [new URL('scripts/update-offline.mjs', root).pathname, '--check'], { stdio: 'inherit' });
-console.log('Syntax, gallery and offline consistency checks passed.');
+console.log('Syntax, gallery, docs and offline consistency checks passed.');
