@@ -427,7 +427,8 @@ Verified implementation adjustments:
 - The default turtle scene uses the documented recording subset; cursor visibility,
   screen titles, timing, and stamp shapes have the limitations described in `docs/turtle.md`.
 - GitHub Pages was already configured with `build_type: workflow`.
-- HashBin's public client ID remains intentionally empty pending registration.
+- HashBin was registered on 2026-10-25. The public client ID
+  `app_2eabd9ad-8b90-4635-accd-7583e5241f96` is configured in `index.html`.
 
 Local validation includes real Pyodide execution and all gallery previews, Python
 unit tests, Node tests with matplotlib, Chromium's full gallery suite, and WebKit's

@@ -15,7 +15,7 @@ const server = http.createServer((req,res) => {
   if (!file || !file.startsWith(root + path.sep) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); res.end('Not found'); return; }
   let data = fs.readFileSync(file);
   if (/\.(?:js|mjs)$/.test(file) && !file.includes('node_modules')) data = Buffer.from(data.toString().replaceAll('https://cdn.jsdelivr.net/pyodide/v314.0.7/full/',base+'/__pyodide__/'));
-  if (path.basename(file) === 'index.html' && url.searchParams.has('hashbin-test')) data = Buffer.from(data.toString().replace('name="hashbin-client-id" content=""','name="hashbin-client-id" content="test-client"'));
+  if (path.basename(file) === 'index.html' && url.searchParams.has('hashbin-test')) data = Buffer.from(data.toString().replace(/name="hashbin-client-id" content="[^"]*"/,'name="hashbin-client-id" content="test-client"'));
   if (path.basename(file) === 'hashbin.js') data = Buffer.from(data.toString().replace('https://hashbin.org/sdk/hashbin.js',base+'/__hashbin_sdk__.js'));
   res.writeHead(200, {'Content-Type':mime[path.extname(file)] || 'application/octet-stream','Cache-Control':'no-cache'}); res.end(data);
 });
@@ -58,7 +58,8 @@ const timeout = 120000;
     const other = await context.newPage(); await other.goto(shared); await other.waitForFunction(()=>!!globalThis.PythonOnline); assert.equal(await other.evaluate(()=>PythonOnline.snapshot().python.stdin),'shared input\n'); await other.close();
     await page.evaluate(()=>{ const original = globalThis.fetch; globalThis.fetch = (url, options) => String(url).startsWith('https://api.allorigins.win/') ? Promise.resolve(new Response(JSON.stringify({contents:'https://is.gd/test123'}),{headers:{'Content-Type':'application/json'}})) : original(url, options); }); await page.locator('#shorten').click(); await page.waitForFunction(()=>document.getElementById('share-url').value==='https://is.gd/test123'); await page.locator('[data-close="share-dialog"]').click();
     await page.locator('#qr-open').click(); assert.equal(await page.locator('#qr-image svg').count(),1); await page.locator('[data-close="qr-dialog"]').click();
-    await page.locator('#more-toggle').click(); await page.locator('#hashbin-save').click(); await page.waitForFunction(()=>document.getElementById('hashbin-message').textContent.includes('registered client ID')); assert.match(await page.locator('#hashbin-message').innerText(),/registered client ID/); await page.locator('#hashbin-close').click();
+    assert.equal(await page.locator('meta[name="hashbin-client-id"]').getAttribute('content'),'app_2eabd9ad-8b90-4635-accd-7583e5241f96');
+    await page.locator('#more-toggle').click(); await page.locator('#hashbin-save').click(); await page.waitForFunction(()=>document.getElementById('hashbin-confirm').textContent==='Connect to HashBin' && !document.getElementById('hashbin-confirm').disabled); assert.match(await page.locator('#hashbin-message').innerText(),/Connect your HashBin account/); await page.locator('#hashbin-close').click();
     const cidSource = Buffer.from('print("CID load")'); const inline = Buffer.from([0,0,0,0,0,cidSource.length]).toString('base64url')+cidSource.toString('base64url'); await page.goto(base+'/#'+inline); await ready(); await page.waitForFunction(()=>document.getElementById('output').textContent.includes('CID load'));
     console.log('Checking matplotlib and pandas');
     // Rich figure capture, downloads, and DataFrame sandbox.

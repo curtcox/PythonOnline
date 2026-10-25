@@ -9,7 +9,7 @@ A static, build-free GitHub Pages app. CPython **3.14.2** runs as WebAssembly th
 - Program input supplies `input()` and `sys.stdin`. Inputs are echoed like a terminal; exhausted input explains how to add more lines.
 - Ordered console, matplotlib SVG/PNG figures, turtle drawings with replay and skip controls, pandas tables, Pillow images, HTML, SVG, and Markdown.
 - Packages from the Pyodide distribution load from imports. Pure-Python PyPI packages can be installed with `await micropip.install(...)` or PEP 723 metadata.
-- Share source and input in compressed links, opt out of running on open, shorten through is.gd, or export a QR code. HashBin loads CIDs and supports authenticated saves once a public client ID is registered.
+- Share source and input in compressed links, opt out of running on open, shorten through is.gd, or export a QR code. HashBin loads CIDs and supports authenticated saves.
 - Download source, console text, figures, and turtle SVG/PNG. Phone layouts have Output / Code / Input tabs and More controls.
 - Installable PWA, atomic offline setup, and first-use package caching. Optional gallery-package caching makes NumPy, matplotlib, pandas, Pillow, and micropip available offline.
 
@@ -77,7 +77,7 @@ HashBin documents use this envelope; bare `.py` content also loads:
 
 Saves use the user's HashBin balance and retention settings. A quote is displayed before saving. OAuth tokens stay in sessionStorage; the source snapshot survives the redirect. Source plus input is limited to 5 MiB, including the JSON envelope.
 
-**Registration required for saves:** register “Python Online” at [HashBin developers](https://hashbin.org/developers) with return URL **`https://curtcox.github.io/PythonOnline/`** (case-sensitive, trailing slash). Put the public client ID in the `hashbin-client-id` meta tag in `index.html`, then run `npm run offline`. The shipped tag is empty, so saves explain that registration is required; CID loading already works.
+**HashBin registration:** “Python Online” is registered with public client ID `app_2eabd9ad-8b90-4635-accd-7583e5241f96`, configured in the `hashbin-client-id` meta tag in `index.html`. Its return URL is **`https://curtcox.github.io/PythonOnline/`** (case-sensitive, trailing slash). Choose **Save to HashBin** to connect your account, then review the quote before saving. If the registration changes, update the meta tag and run `npm run offline`.
 
 ## Worker and output boundaries
 
