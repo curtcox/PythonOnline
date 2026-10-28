@@ -1,4 +1,5 @@
-// Test-only SDK surface. Never loaded by the shipped app.
+// Test-only SDK surface. Never loaded by the shipped app. The sandbox is the real one.
+export { createSandbox } from '/vendor/hashbin-sdk-v0.3.0.mjs';
 const encode = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 async function cid(text) {
   const bytes = new TextEncoder().encode(text), size = new Uint8Array(6);

@@ -17,23 +17,28 @@ const server = http.createServer((req,res) => {
   let data = served(file, url);
   // The service worker only caches bytes matching the manifest, so it describes the rewritten files actually served.
   if (path.basename(file) === 'offline-assets.js' && path.dirname(file) === root) data = Buffer.from(testManifest());
-  res.writeHead(200, {'Content-Type':mime[path.extname(file)] || 'application/octet-stream','Cache-Control':'no-cache'}); res.end(data);
+  // GitHub Pages, jsDelivr and 256t.us all allow cross-origin reads; the opaque-origin sandbox depends on it.
+  res.writeHead(200, {'Content-Type':mime[path.extname(file)] || 'application/octet-stream','Cache-Control':'no-cache','Access-Control-Allow-Origin':'*'}); res.end(data);
 });
 function served(file, url = null) {
   let data = fs.readFileSync(file);
   if (/\.(?:js|mjs)$/.test(file) && !file.includes('node_modules')) data = Buffer.from(data.toString().replaceAll('https://cdn.jsdelivr.net/pyodide/v314.0.7/full/',base+'/__pyodide__/'));
   if (path.basename(file) === 'index.html' && url?.searchParams.has('hashbin-test')) data = Buffer.from(data.toString().replace(/name="hashbin-client-id" content="[^"]*"/,'name="hashbin-client-id" content="test-client"'));
+  // WebKit does not match 'self' in the sandbox's inherited policy; production mirrors are https:, which it allows.
+  if (path.basename(file) === 'index.html') data = Buffer.from(data.toString().replace("connect-src 'self' https:","connect-src 'self' https: "+base));
   // Saved programs come from checked-in copies, as 256t.us serves them.
   if (path.basename(file) === 't256.py') data = Buffer.from(data.toString().replace("SERVERS = ['https://256t.us/', 'https://256t.org/']",`SERVERS = ['${base}/__256t__/']`));
   if (path.basename(file) === 'examples.js' && freshLabel) data = Buffer.from(data.toString().replace('"label": "Hello, Python"',`"label": "${freshLabel}"`));
-  if (path.basename(file) === 'hashbin.js') data = Buffer.from(data.toString().replace('https://hashbin.org/sdk/v0.2.0/hashbin.js',base+'/__hashbin_sdk__.js'));
+  if (path.basename(file) === 'hashbin.js') data = Buffer.from(data.toString().replace('../vendor/hashbin-sdk-v0.3.0.mjs',base+'/__hashbin_sdk__.js'));
   return data;
 }
 function testManifest() {
   const manifest = require('../../offline-assets.js'), sha = data => require('node:crypto').createHash('sha256').update(data).digest('hex'), pyodide = base+'/__pyodide__/';
   const local = name => [path.join(root,'node_modules/pyodide',name),path.join(root,'.pyodide-cache',name)].find(file=>fs.existsSync(file));
   const assets = manifest.assets.map(asset => asset.startsWith(manifest.pyodide) ? pyodide + asset.slice(manifest.pyodide.length) : asset), hashes = {};
-  for (const asset of assets) hashes[asset] = asset.startsWith(pyodide) ? sha(fs.readFileSync(local(asset.slice(pyodide.length)))) : /^https:/.test(asset) ? manifest.hashes[asset] : sha(served(path.join(root,asset)));
+  // The test SDK replaces the vendored one, so it must be available offline too.
+  assets.push('__hashbin_sdk__.js');
+  for (const asset of assets) hashes[asset] = asset === '__hashbin_sdk__.js' ? sha(fs.readFileSync(path.join(root,'tests/browser/fixtures/hashbin-sdk.mjs'))) : asset.startsWith(pyodide) ? sha(fs.readFileSync(local(asset.slice(pyodide.length)))) : /^https:/.test(asset) ? manifest.hashes[asset] : sha(served(path.join(root,asset)));
   return 'const OfflineAssets = '+JSON.stringify({...manifest,pyodide,assets,hashes})+';\nif (typeof module !== "undefined") module.exports = OfflineAssets;\nelse globalThis.OfflineAssets = OfflineAssets;\n';
 }
 const engine = process.env.BROWSER || 'chromium';
@@ -46,7 +51,7 @@ const timeout = 120000;
   const violations = []; await context.exposeBinding('__cspViolation',(_,text)=>violations.push(text));
   await context.addInitScript(()=>addEventListener('securitypolicyviolation',event=>globalThis.__cspViolation?.(event.violatedDirective+' '+event.blockedURI+' '+location.pathname)));
   const page = await context.newPage(); page.setDefaultTimeout(15000);
-  const errors = []; page.on('pageerror',error=>errors.push(String(error)));
+  const errors = []; page.on('pageerror',error=>errors.push(String(error))); if (process.env.DEBUG) { page.on('console',m=>console.log('console:',m.text())); context.on('weberror',e=>console.log('weberror:',String(e.error()))); }
   async function ready() { await page.waitForFunction(()=>!!globalThis.PythonOnline); }
   async function finished() { await page.waitForFunction(()=>['done','error','idle'].includes(document.body.dataset.state),null,{timeout}); }
   async function run(source,stdin='') {
@@ -65,6 +70,9 @@ const timeout = 120000;
     await run('print("before error")\n1 / 0'); assert.match(await page.locator('#status').innerText(),/line 2/); assert.equal(await page.evaluate(()=>PythonOnline.editor.session.getAnnotations()[0].row),1); assert.match(await page.locator('#output').innerText(),/before error/);
     await run('name=input("Name: ")\nprint("Hello",name)','Test\n'); assert.match(await page.locator('#output').innerText(),/Name: Test/);
     await run('import js\nprint(js.caches is None if hasattr(js,"caches") else True)\nprint(hasattr(js,"localStorage"))\nprint(js.indexedDB, js.importScripts, js.Worker)'); assert.match(await page.locator('#output').innerText(),/False/); assert.doesNotMatch(await page.locator('#output').innerText(),/CacheStorage|IDBFactory/);
+    // Regression check for SN-2026-001: programs run in an opaque origin, apart from this app's storage.
+    await run('import js\nprint("origin", js.self.origin)'); assert.match(await page.locator('#output').innerText(),/origin null/);
+    assert.deepEqual(await page.evaluate(()=>[...document.querySelectorAll('iframe[title="Code sandbox"]')].map(frame=>frame.getAttribute('sandbox')).filter(value=>value!=='allow-scripts')),[]);
     console.log('Checking timeouts and Stop');
     // Auto-run timeout starts only once dependencies are ready; spare must recover.
     await page.evaluate(()=>{ PythonOnline.editor.setValue('while True: pass',-1); PythonOnline.run('auto'); }); await page.waitForFunction(()=>document.getElementById('status').textContent.includes('Stopped after 5 s'));

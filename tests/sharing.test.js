@@ -31,17 +31,21 @@ function fullCID(text) { const data = Buffer.from(text), size = Buffer.alloc(6);
 test('HashBin placeholder provides clear registration guidance', async () => {
   await assert.rejects(()=>new HashBinStore().init(),/registered client ID/);
 });
-test('saves go through HashBin Publish with the pinned SDK and verify the returned CID', async () => {
+test('saves go through HashBin Publish with the vendored SDK release and verify the returned CID', async () => {
   const snapshot = {src:'print(1)',python:{stdin:'x',autorun:true}}, payload = D.serialize(snapshot); let options;
   const store = new HashBinStore({clientId:'id',loadSDK:async()=>({HashBinClient:class { publish(content,opts){ assert.equal(content,payload); options=opts; return Promise.resolve({cid:fullCID(payload)}); } }})});
   await assert.rejects(store.publish(payload,snapshot),/still loading/); await store.init();
-  assert.equal((await store.publish(payload,snapshot)).cid,fullCID(payload)); assert.deepEqual(options,{contentType:'application/json',clientState:{snapshot}});
+  assert.equal((await store.publish(payload,snapshot)).cid,fullCID(payload)); assert.deepEqual(options,{contentType:'application/json',clientState:{snapshot},fileName:'program.json'});
   store.client.publish = async () => ({cid:fullCID(payload+' ')}); await assert.rejects(store.publish(payload,snapshot),/does not match its CID/);
-  assert.match(require('node:fs').readFileSync(require('node:path').join(__dirname,'../src/hashbin.js'),'utf8'),/hashbin\.org\/sdk\/v0\.2\.0\/hashbin\.js/);
+  // The vendored files are the exact immutable release; hashes from https://hashbin.org/sdk/v0.3.0/integrity.json.
+  const sri = file => 'sha384-'+require('node:crypto').createHash('sha384').update(require('node:fs').readFileSync(require('node:path').join(__dirname,'..',file))).digest('base64');
+  assert.equal(sri('vendor/hashbin-sdk-v0.3.0.mjs'),'sha384-OrIu52nODd4k+SsDRTZjfEQq7Nu4NO7x1AtXqngPk3r2Pm5eI2Afv7nu33exMJ+a');
+  assert.equal(sri('vendor/hashbin-cache-v0.3.0.js'),'sha384-OjeXeXB30xFV4yU2LmXTYzc0KsymrivM/l3f/rgDQuPsTzGVMnk6vYtck8n60EgP');
+  assert.match(require('node:fs').readFileSync(require('node:path').join(__dirname,'../src/hashbin.js'),'utf8'),/'\.\.\/vendor\/hashbin-sdk-v0\.3\.0\.mjs'/);
 });
 test('redirect saves restore source and input after approval or cancellation', async () => {
   const transactionStorage = memory(), snapshot = {src:'print(1)',python:{stdin:'x',autorun:true}}, payload = D.serialize(snapshot); let outcome = 'approve';
-  const store = new HashBinStore({clientId:'id',transactionStorage,loadSDK:async()=>({HashBinClient:class { publish(){ return Promise.resolve({redirected:true}); } async handlePublishCallback(){ if (outcome !== 'approve') throw new Error('access_denied'); return {cid:fullCID(payload),clientState:{snapshot}}; } }})});
+  const store = new HashBinStore({clientId:'id',transactionStorage,loadSDK:async()=>({HashBinClient:class { publish(){ return Promise.resolve({redirected:true}); } async handlePublishCallback(){ if (outcome !== 'approve') throw Object.assign(new Error('access_denied'),{clientState:{snapshot}}); return {cid:fullCID(payload),clientState:{snapshot}}; } }})});
   await store.init(); assert.equal(await store.published('#'+cid('print(1)')),null); assert.equal(S.parse('https://example.com/#hashbin_publish=s&cid=x').kind,'publish');
   await store.publish(payload,snapshot); assert.deepEqual(await store.published('#hashbin_publish=s&cid=x'),{cid:fullCID(payload),snapshot});
   await store.publish(payload,snapshot); outcome = 'cancel'; assert.deepEqual(await store.published('#hashbin_publish=s&error=access_denied'),{error:'The save was cancelled on HashBin.',snapshot}); assert.equal(transactionStorage.data.size,0);

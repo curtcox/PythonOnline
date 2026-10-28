@@ -32,7 +32,8 @@ function clearAnnotation() {
   if (marker != null) editor.session.removeGutterDecoration(marker, 'error-line'); marker = null;
 }
 function state(name) { document.body.dataset.state = name; }
-const client = new PythonClient({ onMessage(item) {
+// Programs, including ones from links, run in HashBin's opaque-origin sandbox.
+const client = new PythonClient({ createWorker: PythonSandbox.factory(await loadHashBinSDK()), onMessage(item) {
   if (item.type === 'queued') { clearInterval(clock); output.clear(); clearAnnotation(); status(item.text); state('running'); $('stop').disabled = false; }
   else if (item.type === 'status') status(item.text);
   else if (item.type === 'running') {

@@ -1,15 +1,15 @@
-/* Python executes only here. The main thread receives inert output data. */
-// Pyodide 314 requires module workers. The shared core still exposes CommonJS for tests.
-import './python-core.js';
+/* Python executes only here: a worker inside HashBin's opaque-origin sandbox (src/python-sandbox.js).
+   It runs after src/python-core.js and the SDK prelude, which provides hashbinSandbox. */
 const send = self.postMessage.bind(self);
 let core;
 const ready = (async () => {
   const start = performance.now();
   send({ type: 'status', text: 'Loading Python… (~12 MB on first visit)' });
-  const { loadPyodide } = await import(PYODIDE_URL + 'pyodide.mjs');
+  // Runtime bytes come through the editor's verified offline cache, not this sandbox's own fetches.
+  const [{ loadPyodide }, asm] = await Promise.all(['pyodide.mjs', 'pyodide.asm.mjs'].map(file => hashbinSandbox.import(PYODIDE_URL + file)));
   const modules = ['runtime', 'turtle', 't256'];
   const [pyodide, ...sources] = await Promise.all([
-    loadPyodide({ indexURL: PYODIDE_URL }),
+    loadPyodide({ indexURL: PYODIDE_URL, createPyodideModule: asm.default }),
     ...modules.map(name => fetch(`py/${name}.py`).then(response => { if (!response.ok) throw Error(`${name}.py download failed`); return response.text(); }))
   ]);
   core = new PythonCore(pyodide, send);

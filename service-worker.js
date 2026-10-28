@@ -1,18 +1,11 @@
 /* Atomic install: an incomplete cache never replaces a working offline version. */
-importScripts('offline-assets.js');
+importScripts('offline-assets.js', 'vendor/hashbin-cache-v0.3.0.js');
 const CACHE = OfflineAssets.version;
 const absolute = asset => new URL(asset, self.registration.scope).href;
-const hex = buffer => [...new Uint8Array(buffer)].map(b => b.toString(16).padStart(2, '0')).join('');
-const types = { html: 'text/html', js: 'text/javascript', mjs: 'text/javascript', css: 'text/css', json: 'application/json', svg: 'image/svg+xml', png: 'image/png', wasm: 'application/wasm', zip: 'application/zip', whl: 'application/zip', webmanifest: 'application/manifest+json' };
-const type = url => types[/\.([a-z]+)$/.exec(new URL(url).pathname)?.[1]] || 'text/plain';
-// Cache Storage is shared by every app on this origin, so bytes are checked against pinned hashes before they are stored or served.
-async function verified(response, expected, url) {
-  if (!response?.ok || !expected) return null;
-  const body = await response.arrayBuffer();
-  if (hex(await crypto.subtle.digest('SHA-256', body)) !== expected) return null;
-  return new Response(body, { status: 200, headers: { 'Content-Type': type(url) } });
-}
-const assetHash = url => OfflineAssets.hashes[url] || (url.startsWith(self.registration.scope) ? OfflineAssets.hashes[url.slice(self.registration.scope.length)] : undefined);
+// Cache Storage is shared by every app on this origin, so bytes are checked against pinned hashes before
+// they are stored or served (HashBin SDK v0.3.0 verified cache, vendored).
+const verified = HashBinCache.verify;
+const assetHash = HashBinCache.lookup(OfflineAssets.hashes, self.registration.scope);
 // Package files are checked against the pinned lockfile, itself checked against the manifest.
 let lockHashes;
 async function packageHash(url) {
@@ -20,7 +13,7 @@ async function packageHash(url) {
     const lockURL = OfflineAssets.pyodide + 'pyodide-lock.json', cache = await caches.open(CACHE);
     const lock = await verified(await cache.match(lockURL), assetHash(lockURL), lockURL) || await verified(await fetch(lockURL), assetHash(lockURL), lockURL);
     if (!lock) throw Error('Package lockfile did not match its pinned hash.');
-    return new Map(Object.values((await lock.json()).packages).map(pkg => [new URL(pkg.file_name, OfflineAssets.pyodide).href, pkg.sha256]));
+    return HashBinCache.lockfileHashes(lock, OfflineAssets.pyodide);
   })().catch(error => { lockHashes = null; throw error; });
   return (await lockHashes).get(url);
 }
