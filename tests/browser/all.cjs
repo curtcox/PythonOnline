@@ -8,6 +8,12 @@ let base, freshLabel = '';
 const server = http.createServer((req,res) => {
   const url = new URL(req.url, 'http://localhost');
   let file;
+  if (url.pathname === '/frame/v0.4.0') {
+    const embedders = JSON.stringify([base]).replaceAll('"','&quot;');
+    res.writeHead(200, {'Content-Type':'text/html', 'Content-Security-Policy':`default-src 'none'; script-src 'self' blob: 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src 'self' https:; frame-ancestors ${base}`});
+    res.end(`<!doctype html><meta charset="utf-8"><meta name="hashbin-embedders" content="${embedders}"><script src="/frame/v0.4.0.js"></script>`); return;
+  }
+  if (url.pathname === '/frame/v0.4.0.js') { res.writeHead(200,{'Content-Type':'text/javascript'}); res.end(fs.readFileSync(path.join(root,'tests/browser/fixtures/hosted-bootstrap.js'))); return; }
   if (url.pathname === '/__hashbin_sdk__.js') { res.writeHead(200,{'Content-Type':'text/javascript'}); res.end(fs.readFileSync(path.join(root,'tests/browser/fixtures/hashbin-sdk.mjs'))); return; }
   if (url.pathname.startsWith('/__256t__/')) file = path.join(root,'tests/fixtures/256t',path.basename(url.pathname));
   else if (url.pathname.startsWith('/__pyodide__/')) {
@@ -26,10 +32,12 @@ function served(file, url = null) {
   if (path.basename(file) === 'index.html' && url?.searchParams.has('hashbin-test')) data = Buffer.from(data.toString().replace(/name="hashbin-client-id" content="[^"]*"/,'name="hashbin-client-id" content="test-client"'));
   // WebKit does not match 'self' in the sandbox's inherited policy; production mirrors are https:, which it allows.
   if (path.basename(file) === 'index.html') data = Buffer.from(data.toString().replace("connect-src 'self' https:","connect-src 'self' https: "+base));
+  if (path.basename(file) === 'python-sandbox.js') data = Buffer.from(data.toString().replace("runDomain = 'hashbin.app'", `runDomain = 'localhost:${new URL(base).port}'`));
+  if (path.basename(file) === 'index.html') data = Buffer.from(data.toString().replace('https://a2eabd9ad8b904635accd7583e5241f96.hashbin.app', `http://a2eabd9ad8b904635accd7583e5241f96.localhost:${new URL(base).port}`));
   // Saved programs come from checked-in copies, as 256t.us serves them.
   if (path.basename(file) === 't256.py') data = Buffer.from(data.toString().replace("SERVERS = ['https://256t.us/', 'https://256t.org/']",`SERVERS = ['${base}/__256t__/']`));
   if (path.basename(file) === 'examples.js' && freshLabel) data = Buffer.from(data.toString().replace('"label": "Hello, Python"',`"label": "${freshLabel}"`));
-  if (path.basename(file) === 'hashbin.js') data = Buffer.from(data.toString().replace('../vendor/hashbin-sdk-v0.3.0.mjs',base+'/__hashbin_sdk__.js'));
+  if (path.basename(file) === 'hashbin.js') data = Buffer.from(data.toString().replace('../vendor/hashbin-sdk-v0.4.0.mjs',base+'/__hashbin_sdk__.js'));
   return data;
 }
 function testManifest() {
@@ -45,12 +53,29 @@ const engine = process.env.BROWSER || 'chromium';
 const timeout = 120000;
 (async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve)); base = 'http://127.0.0.1:'+server.address().port;
-  const browser = await ({chromium,firefox,webkit}[engine]).launch({ headless:true });
+  const browser = await ({chromium,firefox,webkit}[engine]).launch({ headless:true, ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? {executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH} : {}) });
   const context = await browser.newContext({ acceptDownloads:true });
+  if (engine === 'webkit') {
+    await context.route(`http://a2eabd9ad8b904635accd7583e5241f96.localhost:${new URL(base).port}/**`, async route => {
+      const url = new URL(route.request().url());
+      const response = await context.request.get(base + url.pathname + url.search, {headers:{...route.request().headers(),host:url.host}});
+      await route.fulfill({response});
+    });
+  }
   // The Content-Security-Policy must not block anything the app itself does.
   const violations = []; await context.exposeBinding('__cspViolation',(_,text)=>violations.push(text));
   await context.addInitScript(()=>addEventListener('securitypolicyviolation',event=>globalThis.__cspViolation?.(event.violatedDirective+' '+event.blockedURI+' '+location.pathname)));
   const page = await context.newPage(); page.setDefaultTimeout(15000);
+  // Make the app's synchronous replacement choice deterministic across page
+  // navigations. Headless Chromium can dismiss a native dialog while changing
+  // documents before Playwright can answer it. This is test-only; production
+  // still uses the browser's native confirm and the warning text is asserted.
+  await context.addInitScript(() => {
+    window.confirm = message => {
+      window.__replacementWarning = String(message);
+      return localStorage.getItem('pythononline:test:replace') !== 'cancel';
+    };
+  });
   const errors = []; page.on('pageerror',error=>errors.push(String(error))); if (process.env.DEBUG) { page.on('console',m=>console.log('console:',m.text())); context.on('weberror',e=>console.log('weberror:',String(e.error()))); }
   async function ready() { await page.waitForFunction(()=>!!globalThis.PythonOnline); }
   async function finished() { await page.waitForFunction(()=>['done','error','idle'].includes(document.body.dataset.state),null,{timeout}); }
@@ -73,6 +98,39 @@ const timeout = 120000;
     // Regression check for SN-2026-001: programs run in an opaque origin, apart from this app's storage.
     await run('import js\nprint("origin", js.self.origin)'); assert.match(await page.locator('#output').innerText(),/origin null/);
     assert.deepEqual(await page.evaluate(()=>[...document.querySelectorAll('iframe[title="Code sandbox"]')].map(frame=>frame.getAttribute('sandbox')).filter(value=>value!=='allow-scripts')),[]);
+    console.log('Checking hosted Python filesystem persistence and incoming-link isolation');
+    await page.locator('#more-toggle').click();
+    await page.locator('#persistent-home').check();
+    await run('from pathlib import Path\nPath("persistent-test.txt").write_text("files survive")\nprint("written")');
+    assert.equal(await page.locator('body').getAttribute('data-state'),'done');
+    assert.match(await page.locator('#home-status').innerText(),/Files saved/);
+    await run('import js\nprint("hosted", js.self.origin)\nprint("editor DOM", hasattr(js, "document"), hasattr(js, "localStorage"))');
+    assert.match(await page.locator('#output').innerText(),/hosted http:\/\/a2eabd9ad8b904635accd7583e5241f96\.localhost/);
+    assert.match(await page.locator('#output').innerText(),/editor DOM False False/);
+    assert.equal(await page.evaluate(()=>Boolean(PythonOnline.client.spare)),false);
+    await page.evaluate(()=>PythonOnline.client.stop());
+    await run('print(open("persistent-test.txt").read())');
+    assert.match(await page.locator('#output').innerText(),/files survive/);
+    await page.reload(); await ready();
+    assert.equal(await page.locator('#persistent-home').isChecked(),true);
+    await run('print(open("persistent-test.txt").read())');
+    assert.match(await page.locator('#output').innerText(),/files survive/);
+    const linkedSource = await page.evaluate(()=>PythonOnline.snapshot().src);
+    await page.goto(base+'/?run=0#'+encodeURIComponent(linkedSource)); await ready();
+    assert.equal(await page.locator('#persistent-home').isChecked(),false);
+    assert.equal(await page.evaluate(()=>localStorage.getItem('pythononline:persistent-home')),'false');
+    await page.goto(base+'/?run=0'); await ready();
+    assert.equal(await page.locator('#persistent-home').isChecked(),false);
+    await run('import js\nprint("link origin", js.self.origin)');
+    assert.match(await page.locator('#output').innerText(),/link origin null/);
+    await page.locator('#more-toggle').click(); await page.locator('#persistent-home').check();
+    await run('print("explicitly enabled again")');
+    await page.evaluate(()=>{location.hash=encodeURIComponent(PythonOnline.snapshot().src);});
+    await page.waitForFunction(()=>!document.getElementById('persistent-home').checked);
+    await run('import js\nprint("fragment origin", js.self.origin)');
+    assert.match(await page.locator('#output').innerText(),/fragment origin null/);
+    await page.evaluate(()=>localStorage.removeItem('pythononline:persistent-home'));
+    if (await page.locator('#persistent-home').isVisible()) await page.locator('#more-toggle').click();
     console.log('Checking timeouts and Stop');
     // Auto-run timeout starts only once dependencies are ready; spare must recover.
     await page.evaluate(()=>{ PythonOnline.editor.setValue('while True: pass',-1); PythonOnline.run('auto'); }); await page.waitForFunction(()=>document.getElementById('status').textContent.includes('Stopped after 5 s'));
@@ -90,8 +148,8 @@ const timeout = 120000;
     await page.locator('#more-toggle').click(); await page.locator('#hashbin-save').click(); await page.waitForFunction(()=>document.getElementById('hashbin-confirm').textContent==='Review on HashBin' && !document.getElementById('hashbin-confirm').disabled); assert.match(await page.locator('#hashbin-message').innerText(),/approve the save on hashbin\.org/); await page.locator('#hashbin-close').click();
     // A link that would replace work kept in this browser asks first.
     const cidSource = Buffer.from('print("CID load")'); const inline = Buffer.from([0,0,0,0,0,cidSource.length]).toString('base64url')+cidSource.toString('base64url');
-    page.once('dialog',dialog=>dialog.dismiss()); await page.goto(base+'/#'+inline); await page.waitForFunction(()=>!!globalThis.PythonOnline); await page.waitForTimeout(300); assert.equal(await page.evaluate(()=>PythonOnline.snapshot().src),'print(input())'); assert.ok(!page.url().includes(inline));
-    page.once('dialog',dialog=>dialog.accept()); await page.goto(base+'/#'+inline); await ready(); await page.waitForFunction(()=>document.getElementById('output').textContent.includes('CID load'));
+    await page.evaluate(()=>localStorage.setItem('pythononline:test:replace','cancel')); await page.goto(base+'/#'+inline); await page.waitForFunction(()=>!!globalThis.PythonOnline); await page.waitForTimeout(300); assert.equal(await page.evaluate(()=>PythonOnline.snapshot().src),'print(input())'); assert.ok(!page.url().includes(inline)); assert.match(await page.evaluate(()=>window.__replacementWarning),/Replace the program saved in this browser/);
+    await page.evaluate(()=>localStorage.removeItem('pythononline:test:replace')); await page.goto(base+'/#'+inline); await ready(); await page.waitForFunction(()=>document.getElementById('output').textContent.includes('CID load'));
     console.log('Checking matplotlib and pandas');
     // Rich figure capture, downloads, and DataFrame sandbox.
     await run('import matplotlib.pyplot as plt\nplt.plot([1,2,3])\nplt.show()'); assert.equal(await page.locator('body').getAttribute('data-state'),'done'); await page.locator('#output .figure-canvas svg').waitFor();
@@ -99,7 +157,7 @@ const timeout = 120000;
     await run('import pandas as pd\ndisplay(pd.DataFrame({"value":[1,2]}))'); await page.locator('#output iframe').waitFor();
     console.log('Checking gallery');
     await page.goto(base+'/gallery.html'); assert.equal(await page.locator('#gallery article').count(),25); await page.locator('#search').fill('snowflake'); assert.equal(await page.locator('#gallery article').count(),1);
-    page.once('dialog',dialog=>dialog.accept()); await page.goto(base+'/?example=256t-function&run=0'); await ready(); await page.evaluate(()=>PythonOnline.run()); await finished();
+    await page.evaluate(()=>localStorage.removeItem('pythononline:test:replace')); await page.goto(base+'/?example=256t-function&run=0'); await ready(); await page.evaluate(()=>PythonOnline.run()); await finished();
     assert.match(await page.locator('#output').innerText(),/roman\(2026\) = MMXXVI[\s\S]*Hello, Ada!/);
     if (process.env.FULL_GALLERY) {
       // Validate sample execution independently of the auto-run limit on slower CI hosts.

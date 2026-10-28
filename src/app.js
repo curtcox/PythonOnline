@@ -32,9 +32,16 @@ function clearAnnotation() {
   if (marker != null) editor.session.removeGutterDecoration(marker, 'error-line'); marker = null;
 }
 function state(name) { document.body.dataset.state = name; }
-// Programs, including ones from links, run in HashBin's opaque-origin sandbox.
-const client = new PythonClient({ createWorker: PythonSandbox.factory(await loadHashBinSDK()), onMessage(item) {
+// The local preference never comes from program/share documents.
+const sdk = await loadHashBinSDK();
+const homePreference = new PythonStoragePreference(local, location.href);
+$('persistent-home').checked = homePreference.enabled;
+$('home-status').textContent = homePreference.enabled ? 'Saved files will open in an isolated run origin.' : PythonStoragePreference.isProgramLink(location.href) ? 'Linked programs start without saved files. Review the code before enabling storage.' : 'Files are temporary while this is off.';
+function makeClient() { return new PythonClient({ persistent: homePreference.enabled,
+  createWorker: PythonSandbox.factory(sdk, { persistent: homePreference.enabled }), onMessage: workerMessage }); }
+function workerMessage(item) {
   if (item.type === 'queued') { clearInterval(clock); output.clear(); clearAnnotation(); status(item.text); state('running'); $('stop').disabled = false; }
+  else if (item.type === 'storage') $('home-status').textContent = item.text;
   else if (item.type === 'status') status(item.text);
   else if (item.type === 'running') {
     start = performance.now(); status('Running…');
@@ -49,7 +56,22 @@ const client = new PythonClient({ createWorker: PythonSandbox.factory(await load
     if (item.type === 'stopped' && item.text !== 'Stopped') output.add({ type: 'text', stream: 'stderr', text: '\n' + item.text + '\n' });
   } else if (item.type === 'warning') status(item.text);
   else if (item.type !== 'ready') output.add(item);
-}});
+}
+let client = makeClient();
+function changeStorage(enabled, remember = true) {
+  scheduler.cancel(); clearInterval(clock); client.dispose();
+  if (remember) homePreference.set(enabled); else homePreference.guardLink();
+  $('persistent-home').checked = homePreference.enabled;
+  $('home-status').textContent = homePreference.enabled ? 'Only completed runs save files. Keep a separate backup.' : 'Files are temporary while this is off.';
+  client = makeClient();
+  if (globalThis.PythonOnline) globalThis.PythonOnline.client = client;
+  $('stop').disabled = true; state('idle'); status('Storage mode changed — press Run (Ctrl+Enter).');
+}
+function isolateIncomingProgram() {
+  if (homePreference.enabled) changeStorage(false, false);
+  $('home-status').textContent = 'Loaded programs start without saved files. Review the code before enabling storage.';
+}
+$('persistent-home').onchange = () => changeStorage($('persistent-home').checked);
 const scheduler = new RenderScheduler({ detect: () => {}, render: () => run('auto'), renderDelay: 750 });
 function run(mode = 'manual') { scheduler.cancel(); runSuppressed = false; persist(); client.run(editor.getValue(), $('stdin').value, mode); }
 $('run').onclick = () => run(); $('stop').onclick = () => { scheduler.cancel(); client.stop(); };
@@ -104,7 +126,7 @@ $('download-png').onclick = async () => { try { const item = output.current; con
 const store = new HashBinStore({ clientId: document.querySelector('meta[name="hashbin-client-id"]').content, redirectUri: new URL('./', location.href).href, storage: session, transactionStorage: session });
 let linkLoad = false;
 const panel = new HashBinPanel({ store, getSnapshot: snapshot, getFingerprint: fingerprint,
-  onLoad(value, cid) { if (linkLoad && !acceptLink(value)) { history.replaceState(null, '', links().fallback); return false; } apply(value); saved = { fingerprint: fingerprint(), link: HashBinDocuments.link(location.href, cid) }; history.replaceState(null, '', saved.link); if ($('autorun').checked && !runSuppressed) run('auto'); else status('Ready — press Run (Ctrl+Enter)'); },
+  onLoad(value, cid) { if (linkLoad && !acceptLink(value)) { history.replaceState(null, '', links().fallback); return false; } isolateIncomingProgram(); apply(value); saved = { fingerprint: fingerprint(), link: HashBinDocuments.link(location.href, cid) }; history.replaceState(null, '', saved.link); if ($('autorun').checked && !runSuppressed) run('auto'); else status('Ready — press Run (Ctrl+Enter)'); },
   onSaved(cid, value, link) { saved = { fingerprint: value, link }; history.replaceState(null, '', link); $('hashbin-cid').value = cid; }
 });
 function edited() {
@@ -149,6 +171,7 @@ try {
 window.addEventListener('hashchange', async () => {
   try {
     const parsed = ShareLinks.parse(location.href, LZString.decompressFromEncodedURIComponent);
+    if (parsed) isolateIncomingProgram();
     runSuppressed = parsed?.run === false;
     if (parsed?.kind === 'cid') { $('hashbin-cid').value = parsed.cid; linkLoad = true; await panel.load(parsed.cid); linkLoad = false; }
     else if (parsed?.kind === 'source') { if (!acceptLink(parsed)) { history.replaceState(null, '', links().fallback); return; } panel.cancelLoad(); saved = null; apply(parsed); if ($('autorun').checked && !runSuppressed) run('auto'); }

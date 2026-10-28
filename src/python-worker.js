@@ -1,7 +1,8 @@
-/* Python executes only here: a worker inside HashBin's opaque-origin sandbox (src/python-sandbox.js).
+/* Python executes only here: a worker inside HashBin's isolated sandbox (src/python-sandbox.js).
    It runs after src/python-core.js and the SDK prelude, which provides hashbinSandbox. */
 const send = self.postMessage.bind(self);
 let core;
+const persistent = typeof PYTHON_PERSISTENT_HOME !== 'undefined' && PYTHON_PERSISTENT_HOME === true && hashbinSandbox.origin !== 'null';
 const ready = (async () => {
   const start = performance.now();
   send({ type: 'status', text: 'Loading Python… (~12 MB on first visit)' });
@@ -12,9 +13,19 @@ const ready = (async () => {
     loadPyodide({ indexURL: PYODIDE_URL, createPyodideModule: asm.default }),
     ...modules.map(name => fetch(`py/${name}.py`).then(response => { if (!response.ok) throw Error(`${name}.py download failed`); return response.text(); }))
   ]);
-  core = new PythonCore(pyodide, send);
+  let home = null;
+  if (persistent) {
+    send({ type: 'storage', state: 'loading', text: 'Opening saved files…' });
+    home = new PythonHome(pyodide);
+    try { await home.restore(); }
+    catch (error) {
+      send({ type: 'storage', state: 'error', text: `Saved files could not be opened: ${error.message || error}` });
+      throw error;
+    }
+  }
+  core = new PythonCore(pyodide, send, { home });
   core.install(Object.fromEntries(modules.map((name, index) => [name, sources[index]])));
-  harden(self);
+  harden(self, { persistent });
   send({ type: 'ready', ms: performance.now() - start });
 })().catch(error => { send({ type: 'fatal', error: String(error) }); throw error; });
 self.onmessage = async ({ data }) => {

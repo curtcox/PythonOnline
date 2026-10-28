@@ -28,10 +28,11 @@ class OutputBuffer {
     this.pending = ''; this.last = this.now();
   }
 }
-function harden(scope = globalThis) {
+function harden(scope = globalThis, { persistent = false } = {}) {
   // Remove inherited getters too; shadowing alone leaves prototype getter bypasses.
   // Nested workers would create a fresh realm with the storage APIs restored.
-  for (const key of ['caches', 'indexedDB', 'importScripts', 'Worker', 'SharedWorker']) {
+  // Hosted mode intentionally retains its own IndexedDB capability for IDBFS.
+  for (const key of ['caches', ...(!persistent ? ['indexedDB'] : []), 'importScripts', 'Worker', 'SharedWorker']) {
     for (let prototype = Object.getPrototypeOf(scope); prototype; prototype = Object.getPrototypeOf(prototype)) {
       if (Object.getOwnPropertyDescriptor(prototype, key)?.configurable) delete prototype[key];
     }
@@ -39,9 +40,11 @@ function harden(scope = globalThis) {
   }
 }
 class PythonCore {
-  constructor(pyodide, emit) { this.pyodide = pyodide; this.emit = emit; }
+  constructor(pyodide, emit, { home = null } = {}) { this.pyodide = pyodide; this.emit = emit; this.home = home; }
   install(modules) {
-    const py = this.pyodide, directory = '/home/pyodide/_pythononline';
+    // Restored files are untrusted. Keep verified runtime helpers outside the
+    // persistent home so they are freshly installed on every worker startup.
+    const py = this.pyodide, directory = '/opt/_pythononline';
     py.FS.mkdirTree(directory);
     for (const [name, source] of Object.entries(modules)) py.FS.writeFile(`${directory}/${name}.py`, source);
     py.runPython(`import sys, os\nsys.path.insert(0, '${directory}')\nos.environ['MPLBACKEND'] = 'agg'\nimport runtime`);
@@ -86,7 +89,21 @@ class PythonCore {
       if (error) send({ type: 'text', stream: 'stderr', text: error + '\n' });
       try { py.runPython('runtime.restore()'); } finally { namespace?.destroy(); py.unregisterJsModule('_online_bridge'); }
     }
-    const result = { type: 'done', id, ok: !error, ms: start === undefined ? 0 : performance.now() - start, error };
+    let filesSaved = false;
+    if (this.home) {
+      send({ type: 'storage', state: 'saving', text: 'Saving files…' });
+      try {
+        await this.home.save(); filesSaved = true;
+        send({ type: 'storage', state: 'saved', text: 'Files saved in this browser. Keep a separate backup.' });
+      } catch (caught) {
+        const message = `Files were not saved: ${caught.message || caught}`;
+        error = error ? `${error}\n${message}` : message;
+        send({ type: 'storage', state: 'error', text: message });
+        send({ type: 'text', stream: 'stderr', text: `${message}\n` });
+      }
+    }
+    const result = { type: 'done', id, ok: !error, ms: start === undefined ? 0 : performance.now() - start, error,
+      filesSaved: this.home ? filesSaved : null };
     this.emit(result); return result;
   }
 }

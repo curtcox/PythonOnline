@@ -1,9 +1,9 @@
 /* Atomic install: an incomplete cache never replaces a working offline version. */
-importScripts('offline-assets.js', 'vendor/hashbin-cache-v0.3.0.js');
+importScripts('offline-assets.js', 'vendor/hashbin-cache-v0.4.0.js');
 const CACHE = OfflineAssets.version;
 const absolute = asset => new URL(asset, self.registration.scope).href;
 // Cache Storage is shared by every app on this origin, so bytes are checked against pinned hashes before
-// they are stored or served (HashBin SDK v0.3.0 verified cache, vendored).
+// they are stored or served (HashBin SDK v0.4.0 verified cache, vendored).
 const verified = HashBinCache.verify;
 const assetHash = HashBinCache.lookup(OfflineAssets.hashes, self.registration.scope);
 // Package files are checked against the pinned lockfile, itself checked against the manifest.

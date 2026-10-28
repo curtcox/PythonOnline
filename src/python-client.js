@@ -1,8 +1,8 @@
 (() => {
 class PythonClient {
   constructor({ createWorker = () => new Worker('src/python-worker.js?v=1', { type: 'module' }), onMessage = () => {}, timers = globalThis,
-    lowMemory = (globalThis.navigator?.deviceMemory < 4 || /Android|iPhone|iPad/i.test(globalThis.navigator?.userAgent || '')) } = {}) {
-    Object.assign(this, { createWorker, onMessage, timers, lowMemory });
+    lowMemory = (globalThis.navigator?.deviceMemory < 4 || /Android|iPhone|iPad/i.test(globalThis.navigator?.userAgent || '')), persistent = false } = {}) {
+    Object.assign(this, { createWorker, onMessage, timers, lowMemory, persistent });
     this.revision = 0; this.active = this.makeWorker();
   }
   makeWorker(spare = false) {
@@ -13,7 +13,7 @@ class PythonClient {
         record.ready = true;
         if (record === this.active) {
           this.onMessage(data); this.dispatch();
-          if (!this.lowMemory && !this.spare) this.spare = this.makeWorker(true);
+          if (!this.lowMemory && !this.persistent && !this.spare) this.spare = this.makeWorker(true);
         }
         return;
       }
@@ -29,6 +29,7 @@ class PythonClient {
       this.onMessage(data);
     };
     record.worker.onerror = event => {
+      if (this.disposed) return;
       if (record !== this.active) { record.failed = true; record.worker.terminate(); if (record === this.spare) this.spare = null; return; }
       record.failed = true; this.clearTimers(); this.busy = false; this.pending = null;
       this.onMessage({ type: 'fatal', error: event.message || 'Python worker failed to load. Check your connection and press Run to retry.' });
@@ -39,7 +40,7 @@ class PythonClient {
   replace() {
     this.active.worker.terminate();
     this.active = this.spare || this.makeWorker(); this.active.spare = false; this.spare = null;
-    if (!this.lowMemory && this.active.ready) this.spare = this.makeWorker(true);
+    if (!this.lowMemory && !this.persistent && this.active.ready) this.spare = this.makeWorker(true);
   }
   run(source, stdin = '', mode = 'manual') {
     this.clearTimers();

@@ -48,3 +48,19 @@ test('malformed package metadata reports a useful error and the next run recover
   assert.equal(malformed.ok, false); assert.match(malformed.error, /list of strings/);
   assert.equal((await run('print("recovered", flush=True)')).text, 'recovered\n');
 });
+
+test('filesystem flush completes before done and failed saves do not report success', async () => {
+  let release;
+  core.home = { save: () => new Promise(resolve => { release = resolve; }) };
+  items = [];
+  const pending = core.run({ id: 100, source: 'print("saved")' });
+  while (!release) await new Promise(resolve => setTimeout(resolve, 1));
+  assert.ok(!items.some(item => item.type === 'done'));
+  release();
+  const saved = await pending; assert.equal(saved.ok, true); assert.equal(saved.filesSaved, true);
+  core.home = { save: async () => { throw new Error('Storage unavailable'); } };
+  const failed = await run('print("not persisted")');
+  assert.equal(failed.ok, false); assert.equal(failed.filesSaved, false);
+  assert.match(failed.text, /Files were not saved: Storage unavailable/);
+  core.home = null;
+});

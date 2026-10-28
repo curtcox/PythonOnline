@@ -162,7 +162,7 @@ def prepare(stdin='', emit=None):
         plt.close('all')
     for name, module in list(sys.modules.items()):
         path = getattr(module, '__file__', '') or ''
-        if name not in _base_modules and path.startswith('/home/pyodide/') and '/_pythononline/' not in path:
+        if name not in _base_modules and path.startswith('/home/pyodide/'):
             sys.modules.pop(name, None)
     if os.path.isdir('/home/pyodide'):
         os.chdir('/home/pyodide')

@@ -37,11 +37,11 @@ test('saves go through HashBin Publish with the vendored SDK release and verify 
   await assert.rejects(store.publish(payload,snapshot),/still loading/); await store.init();
   assert.equal((await store.publish(payload,snapshot)).cid,fullCID(payload)); assert.deepEqual(options,{contentType:'application/json',clientState:{snapshot},fileName:'program.json'});
   store.client.publish = async () => ({cid:fullCID(payload+' ')}); await assert.rejects(store.publish(payload,snapshot),/does not match its CID/);
-  // The vendored files are the exact immutable release; hashes from https://hashbin.org/sdk/v0.3.0/integrity.json.
+  // The vendored files are the exact immutable release; hashes from https://hashbin.org/sdk/v0.4.0/integrity.json.
   const sri = file => 'sha384-'+require('node:crypto').createHash('sha384').update(require('node:fs').readFileSync(require('node:path').join(__dirname,'..',file))).digest('base64');
-  assert.equal(sri('vendor/hashbin-sdk-v0.3.0.mjs'),'sha384-OrIu52nODd4k+SsDRTZjfEQq7Nu4NO7x1AtXqngPk3r2Pm5eI2Afv7nu33exMJ+a');
-  assert.equal(sri('vendor/hashbin-cache-v0.3.0.js'),'sha384-OjeXeXB30xFV4yU2LmXTYzc0KsymrivM/l3f/rgDQuPsTzGVMnk6vYtck8n60EgP');
-  assert.match(require('node:fs').readFileSync(require('node:path').join(__dirname,'../src/hashbin.js'),'utf8'),/'\.\.\/vendor\/hashbin-sdk-v0\.3\.0\.mjs'/);
+  assert.equal(sri('vendor/hashbin-sdk-v0.4.0.mjs'),'sha384-zzmaXw5svWRp0YF//G5ytyeqEowixccM/hHVDth46FnGrIlPS7fPki5vbhv+bWCr');
+  assert.equal(sri('vendor/hashbin-cache-v0.4.0.js'),'sha384-OjeXeXB30xFV4yU2LmXTYzc0KsymrivM/l3f/rgDQuPsTzGVMnk6vYtck8n60EgP');
+  assert.match(require('node:fs').readFileSync(require('node:path').join(__dirname,'../src/hashbin.js'),'utf8'),/'\.\.\/vendor\/hashbin-sdk-v0\.4\.0\.mjs'/);
 });
 test('redirect saves restore source and input after approval or cancellation', async () => {
   const transactionStorage = memory(), snapshot = {src:'print(1)',python:{stdin:'x',autorun:true}}, payload = D.serialize(snapshot); let outcome = 'approve';
