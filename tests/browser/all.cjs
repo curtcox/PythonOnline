@@ -14,21 +14,37 @@ const server = http.createServer((req,res) => {
     const name = path.basename(url.pathname); file = [path.join(root,'node_modules/pyodide',name),path.join(root,'.pyodide-cache',name)].find(file=>fs.existsSync(file));
   } else file = path.join(root, decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
   if (!file || !file.startsWith(root + path.sep) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); res.end('Not found'); return; }
+  let data = served(file, url);
+  // The service worker only caches bytes matching the manifest, so it describes the rewritten files actually served.
+  if (path.basename(file) === 'offline-assets.js' && path.dirname(file) === root) data = Buffer.from(testManifest());
+  res.writeHead(200, {'Content-Type':mime[path.extname(file)] || 'application/octet-stream','Cache-Control':'no-cache'}); res.end(data);
+});
+function served(file, url = null) {
   let data = fs.readFileSync(file);
   if (/\.(?:js|mjs)$/.test(file) && !file.includes('node_modules')) data = Buffer.from(data.toString().replaceAll('https://cdn.jsdelivr.net/pyodide/v314.0.7/full/',base+'/__pyodide__/'));
-  if (path.basename(file) === 'index.html' && url.searchParams.has('hashbin-test')) data = Buffer.from(data.toString().replace(/name="hashbin-client-id" content="[^"]*"/,'name="hashbin-client-id" content="test-client"'));
+  if (path.basename(file) === 'index.html' && url?.searchParams.has('hashbin-test')) data = Buffer.from(data.toString().replace(/name="hashbin-client-id" content="[^"]*"/,'name="hashbin-client-id" content="test-client"'));
   // Saved programs come from checked-in copies, as 256t.us serves them.
   if (path.basename(file) === 't256.py') data = Buffer.from(data.toString().replace("SERVERS = ['https://256t.us/', 'https://256t.org/']",`SERVERS = ['${base}/__256t__/']`));
   if (path.basename(file) === 'examples.js' && freshLabel) data = Buffer.from(data.toString().replace('"label": "Hello, Python"',`"label": "${freshLabel}"`));
-  if (path.basename(file) === 'hashbin.js') data = Buffer.from(data.toString().replace('https://hashbin.org/sdk/hashbin.js',base+'/__hashbin_sdk__.js'));
-  res.writeHead(200, {'Content-Type':mime[path.extname(file)] || 'application/octet-stream','Cache-Control':'no-cache'}); res.end(data);
-});
+  if (path.basename(file) === 'hashbin.js') data = Buffer.from(data.toString().replace('https://hashbin.org/sdk/v0.2.0/hashbin.js',base+'/__hashbin_sdk__.js'));
+  return data;
+}
+function testManifest() {
+  const manifest = require('../../offline-assets.js'), sha = data => require('node:crypto').createHash('sha256').update(data).digest('hex'), pyodide = base+'/__pyodide__/';
+  const local = name => [path.join(root,'node_modules/pyodide',name),path.join(root,'.pyodide-cache',name)].find(file=>fs.existsSync(file));
+  const assets = manifest.assets.map(asset => asset.startsWith(manifest.pyodide) ? pyodide + asset.slice(manifest.pyodide.length) : asset), hashes = {};
+  for (const asset of assets) hashes[asset] = asset.startsWith(pyodide) ? sha(fs.readFileSync(local(asset.slice(pyodide.length)))) : /^https:/.test(asset) ? manifest.hashes[asset] : sha(served(path.join(root,asset)));
+  return 'const OfflineAssets = '+JSON.stringify({...manifest,pyodide,assets,hashes})+';\nif (typeof module !== "undefined") module.exports = OfflineAssets;\nelse globalThis.OfflineAssets = OfflineAssets;\n';
+}
 const engine = process.env.BROWSER || 'chromium';
 const timeout = 120000;
 (async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve)); base = 'http://127.0.0.1:'+server.address().port;
   const browser = await ({chromium,firefox,webkit}[engine]).launch({ headless:true });
   const context = await browser.newContext({ acceptDownloads:true });
+  // The Content-Security-Policy must not block anything the app itself does.
+  const violations = []; await context.exposeBinding('__cspViolation',(_,text)=>violations.push(text));
+  await context.addInitScript(()=>addEventListener('securitypolicyviolation',event=>globalThis.__cspViolation?.(event.violatedDirective+' '+event.blockedURI+' '+location.pathname)));
   const page = await context.newPage(); page.setDefaultTimeout(15000);
   const errors = []; page.on('pageerror',error=>errors.push(String(error)));
   async function ready() { await page.waitForFunction(()=>!!globalThis.PythonOnline); }
@@ -63,8 +79,11 @@ const timeout = 120000;
     await page.evaluate(()=>{ const original = globalThis.fetch; globalThis.fetch = (url, options) => String(url).startsWith('https://api.allorigins.win/') ? Promise.resolve(new Response(JSON.stringify({contents:'https://is.gd/test123'}),{headers:{'Content-Type':'application/json'}})) : original(url, options); }); await page.locator('#shorten').click(); await page.waitForFunction(()=>document.getElementById('share-url').value==='https://is.gd/test123'); await page.locator('[data-close="share-dialog"]').click();
     await page.locator('#qr-open').click(); assert.equal(await page.locator('#qr-image svg').count(),1); await page.locator('[data-close="qr-dialog"]').click();
     assert.equal(await page.locator('meta[name="hashbin-client-id"]').getAttribute('content'),'app_2eabd9ad-8b90-4635-accd-7583e5241f96');
-    await page.locator('#more-toggle').click(); await page.locator('#hashbin-save').click(); await page.waitForFunction(()=>document.getElementById('hashbin-confirm').textContent==='Connect to HashBin' && !document.getElementById('hashbin-confirm').disabled); assert.match(await page.locator('#hashbin-message').innerText(),/Connect your HashBin account/); await page.locator('#hashbin-close').click();
-    const cidSource = Buffer.from('print("CID load")'); const inline = Buffer.from([0,0,0,0,0,cidSource.length]).toString('base64url')+cidSource.toString('base64url'); await page.goto(base+'/#'+inline); await ready(); await page.waitForFunction(()=>document.getElementById('output').textContent.includes('CID load'));
+    await page.locator('#more-toggle').click(); await page.locator('#hashbin-save').click(); await page.waitForFunction(()=>document.getElementById('hashbin-confirm').textContent==='Review on HashBin' && !document.getElementById('hashbin-confirm').disabled); assert.match(await page.locator('#hashbin-message').innerText(),/approve the save on hashbin\.org/); await page.locator('#hashbin-close').click();
+    // A link that would replace work kept in this browser asks first.
+    const cidSource = Buffer.from('print("CID load")'); const inline = Buffer.from([0,0,0,0,0,cidSource.length]).toString('base64url')+cidSource.toString('base64url');
+    page.once('dialog',dialog=>dialog.dismiss()); await page.goto(base+'/#'+inline); await page.waitForFunction(()=>!!globalThis.PythonOnline); await page.waitForTimeout(300); assert.equal(await page.evaluate(()=>PythonOnline.snapshot().src),'print(input())'); assert.ok(!page.url().includes(inline));
+    page.once('dialog',dialog=>dialog.accept()); await page.goto(base+'/#'+inline); await ready(); await page.waitForFunction(()=>document.getElementById('output').textContent.includes('CID load'));
     console.log('Checking matplotlib and pandas');
     // Rich figure capture, downloads, and DataFrame sandbox.
     await run('import matplotlib.pyplot as plt\nplt.plot([1,2,3])\nplt.show()'); assert.equal(await page.locator('body').getAttribute('data-state'),'done'); await page.locator('#output .figure-canvas svg').waitFor();
@@ -72,7 +91,7 @@ const timeout = 120000;
     await run('import pandas as pd\ndisplay(pd.DataFrame({"value":[1,2]}))'); await page.locator('#output iframe').waitFor();
     console.log('Checking gallery');
     await page.goto(base+'/gallery.html'); assert.equal(await page.locator('#gallery article').count(),25); await page.locator('#search').fill('snowflake'); assert.equal(await page.locator('#gallery article').count(),1);
-    await page.goto(base+'/?example=256t-function&run=0'); await ready(); await page.evaluate(()=>PythonOnline.run()); await finished();
+    page.once('dialog',dialog=>dialog.accept()); await page.goto(base+'/?example=256t-function&run=0'); await ready(); await page.evaluate(()=>PythonOnline.run()); await finished();
     assert.match(await page.locator('#output').innerText(),/roman\(2026\) = MMXXVI[\s\S]*Hello, Ada!/);
     if (process.env.FULL_GALLERY) {
       // Validate sample execution independently of the auto-run limit on slower CI hosts.
@@ -84,34 +103,39 @@ const timeout = 120000;
         assert.equal(await page.locator('body').getAttribute('data-state'),'done',sample.id+': '+await page.locator('#status').innerText()+'\n'+await page.locator('#output').innerText());
       }
     }
-    console.log('Checking HashBin OAuth, quote, save and stale-load protection');
+    console.log('Checking HashBin Publish saves, legacy token revocation and stale-load protection');
     const authContext = await browser.newContext({serviceWorkers:'block'});
     const auth = await authContext.newPage(); auth.setDefaultTimeout(15000);
-    const savedCID = Buffer.from([0,0,0,0,0,2]).toString('base64url') + Buffer.from('hi').toString('base64url');
-    await auth.route('https://hashbin.org/api/**', route => {
-      const pathname = new URL(route.request().url()).pathname;
-      return route.fulfill({json:pathname.endsWith('/settings') ? {default_retention_months:2} : pathname.endsWith('/balance') ? {balance_cents:100} : pathname.endsWith('/calculate') ? {cost_cents:2} : {cid:savedCID}});
-    });
+    const fullCID = text => { const data = Buffer.from(text), size = Buffer.alloc(6); size.writeUIntBE(data.length,0,6); return size.toString('base64url') + (data.length <= 64 ? data : require('node:crypto').createHash('sha512').update(data).digest()).toString('base64url'); };
+    const docs = require('../../src/hashbin.js').HashBinDocuments;
     await auth.goto(base+'/?hashbin-test=1&run=0'); await auth.waitForFunction(()=>!!globalThis.PythonOnline);
-    await auth.evaluate(()=>{PythonOnline.editor.setValue('print("OAuth restored")',-1);document.getElementById('stdin').value='saved input\n';document.getElementById('autorun').checked=false;});
-    await auth.locator('#more-toggle').click(); await auth.locator('#hashbin-save').click();
-    await auth.waitForFunction(()=>document.getElementById('hashbin-confirm').textContent==='Connect to HashBin' && !document.getElementById('hashbin-confirm').disabled);
-    await Promise.all([auth.waitForNavigation(),auth.locator('#hashbin-confirm').click()]);
-    await auth.waitForFunction(()=>document.getElementById('hashbin-status').textContent.startsWith('Connected to HashBin'));
-    assert.equal(await auth.evaluate(()=>PythonOnline.snapshot().src),'print("OAuth restored")'); assert.equal(await auth.evaluate(()=>PythonOnline.snapshot().python.stdin),'saved input\n');
-    await auth.locator('#more-toggle').click(); await auth.locator('#hashbin-save').click();
-    await auth.waitForFunction(()=>document.getElementById('hashbin-message').textContent.includes('Cost: $0.02'));
-    await auth.locator('#hashbin-confirm').click(); await auth.waitForFunction(()=>document.getElementById('hashbin-status').textContent==='Saved to HashBin.');
-    assert.equal(new URL(auth.url()).hash,'#'+savedCID); await auth.locator('#hashbin-close').click();
+    await auth.evaluate(()=>sessionStorage.setItem('hashbin:tokens:test-client','{"refreshToken":"old"}')); await auth.reload(); await auth.waitForFunction(()=>!!globalThis.PythonOnline);
+    await auth.waitForFunction(()=>localStorage.getItem('pythononline:test:revoked')==='yes' && !sessionStorage.getItem('hashbin:tokens:test-client'));
+    const save = async () => { if (!await auth.locator('#hashbin-save').isVisible()) await auth.locator('#more-toggle').click(); await auth.locator('#hashbin-save').click(); await auth.waitForFunction(()=>document.getElementById('hashbin-confirm').textContent==='Review on HashBin' && !document.getElementById('hashbin-confirm').disabled); };
+    await auth.evaluate(()=>{PythonOnline.editor.setValue('print("popup save")',-1);document.getElementById('stdin').value='saved input\n';document.getElementById('autorun').checked=false;});
+    const popupCID = fullCID(docs.serialize(await auth.evaluate(()=>PythonOnline.snapshot())));
+    await save(); await auth.locator('#hashbin-confirm').click(); await auth.waitForFunction(()=>document.getElementById('hashbin-status').textContent==='Saved to HashBin.');
+    assert.equal(new URL(auth.url()).hash,'#'+popupCID); await auth.locator('#hashbin-close').click();
+    await auth.evaluate(()=>{localStorage.setItem('pythononline:test:publish','cancel');PythonOnline.editor.setValue('print("cancelled")',-1);}); await save(); await auth.locator('#hashbin-confirm').click();
+    await auth.waitForFunction(()=>/cancelled on HashBin/.test(document.getElementById('hashbin-message').textContent)); await auth.locator('#hashbin-close').click();
+    await auth.evaluate(()=>{localStorage.setItem('pythononline:test:publish','redirect');PythonOnline.editor.setValue('print("redirect restored")',-1);});
+    const before = await auth.evaluate(()=>PythonOnline.snapshot()), redirectCID = fullCID(docs.serialize(before));
+    await save(); await Promise.all([auth.waitForURL('**#hashbin_publish=*'),auth.locator('#hashbin-confirm').click()]);
+    await auth.waitForFunction(()=>!!globalThis.PythonOnline && document.getElementById('hashbin-status').textContent==='Saved to HashBin.');
+    assert.deepEqual(await auth.evaluate(()=>PythonOnline.snapshot()),before); assert.equal(new URL(auth.url()).hash,'#'+redirectCID); await auth.evaluate(()=>localStorage.removeItem('pythononline:test:publish'));
     await auth.evaluate(()=>PythonOnline.editor.setValue('print("latest edit")',-1)); assert.ok(!new URL(auth.url()).hash);
     const largeCID = Buffer.from([0,0,0,0,0,100]).toString('base64url')+Buffer.alloc(64,1).toString('base64url');
     let resolveRoute; const intercepted = new Promise(resolve=>{resolveRoute=resolve;});
     await auth.route('https://256t.us/**',route=>resolveRoute(route));
+    if (!await auth.locator('#hashbin-cid').isVisible()) await auth.locator('#more-toggle').click();
     await auth.locator('#hashbin-cid').fill(largeCID); await auth.locator('#hashbin-load').click(); const delayedRoute=await intercepted;
     await auth.evaluate(()=>PythonOnline.editor.setValue('print("keep this edit")',-1));
     await delayedRoute.fulfill({body:'print("stale load")'});
     assert.equal(await auth.evaluate(()=>PythonOnline.editor.getValue()),'print("keep this edit")');
     await authContext.close();
+    await page.evaluate(()=>{const script=document.createElement('script');script.src='https://example.invalid/injected.js';document.head.append(script);});
+    await new Promise(resolve=>{const wait=()=>violations.some(v=>v.includes('example.invalid'))?resolve():setTimeout(wait,50);wait();});
+    assert.deepEqual(violations.filter(v=>!v.includes('example.invalid')),[],'Content-Security-Policy violations');
     console.log('Checking mobile');
     // Mobile tabs, touch target sizes, no horizontal overflow.
     await page.setViewportSize({width:375,height:812}); await page.goto(base+'/?run=0'); await ready();
@@ -122,6 +146,10 @@ const timeout = 120000;
     // Wait for atomic offline install, then disable all network and reload.
     await page.setViewportSize({width:1280,height:800}); await page.waitForFunction(()=>!!navigator.serviceWorker.controller,null,{timeout});
     await page.waitForFunction(()=>document.getElementById('offline-status').textContent==='Available offline',null,{timeout});
+    // A sibling app on the same origin can write this app's Cache Storage; altered entries are never served.
+    await page.evaluate(async()=>{const cache=await caches.open((await caches.keys()).find(name=>name.startsWith('pythononline-')));await cache.put(new URL('src/qr.js',location.href).href,new Response('globalThis.poisonedCache=true;',{headers:{'Content-Type':'text/javascript'}}));});
+    await page.reload(); await ready(); assert.equal(await page.evaluate(()=>globalThis.poisonedCache),undefined);
+    await page.waitForFunction(()=>document.getElementById('offline-status').textContent==='Offline setup incomplete',null,{timeout}); await page.locator('#offline-action').click(); await page.waitForFunction(()=>document.getElementById('offline-status').textContent==='Available offline',null,{timeout});
     await context.setOffline(true); await page.reload(); await ready(); await run('print("offline success")'); assert.match(await page.locator('#output').innerText(),/offline success/); await context.setOffline(false);
     // The gallery reads a new deploy from the network while the editor keeps its cached version.
     const gallery = await context.newPage(); freshLabel = 'Hello, deployed Python';

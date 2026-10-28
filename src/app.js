@@ -21,6 +21,12 @@ function apply(value) {
   editor.setValue(value.src || '', -1); $('stdin').value = value.python?.stdin || '';
   $('autorun').checked = value.python?.autorun !== false; inputCount(); applying = false; persist();
 }
+// Links can come from anyone; never let one silently replace work kept in this browser.
+function acceptLink(incoming) {
+  const same = (src, stdin) => src === editor.getValue() && (stdin || '') === $('stdin').value;
+  if (same(incoming.src, incoming.python?.stdin) || PythonExamples.catalog.some(sample => same(sample.src, sample.stdin))) return true;
+  return confirm('This link opens a different program. Replace the program saved in this browser?\n\nChoose Cancel to keep your current work.');
+}
 function clearAnnotation() {
   editor.session.clearAnnotations();
   if (marker != null) editor.session.removeGutterDecoration(marker, 'error-line'); marker = null;
@@ -95,8 +101,9 @@ $('download-text').onclick = () => PythonExport.download(output.text, 'output.tx
 $('download-svg').onclick = () => PythonExport.download(output.current.svg, 'drawing.svg', 'image/svg+xml');
 $('download-png').onclick = async () => { try { const item = output.current; const blob = item.png ? PythonExport.binary64(item.png, 'image/png') : item.svg ? await PythonExport.svgPNG(item.svg) : item.blob; PythonExport.download(blob, blob.type === 'image/jpeg' ? 'image.jpeg' : 'image.png'); } catch (error) { $('download-status').textContent = 'Image download failed: ' + error.message; } };
 const store = new HashBinStore({ clientId: document.querySelector('meta[name="hashbin-client-id"]').content, redirectUri: new URL('./', location.href).href, storage: session, transactionStorage: session });
+let linkLoad = false;
 const panel = new HashBinPanel({ store, getSnapshot: snapshot, getFingerprint: fingerprint,
-  onLoad(value, cid) { apply(value); saved = { fingerprint: fingerprint(), link: HashBinDocuments.link(location.href, cid) }; history.replaceState(null, '', saved.link); if ($('autorun').checked && !runSuppressed) run('auto'); else status('Ready — press Run (Ctrl+Enter)'); },
+  onLoad(value, cid) { if (linkLoad && !acceptLink(value)) { history.replaceState(null, '', links().fallback); return false; } apply(value); saved = { fingerprint: fingerprint(), link: HashBinDocuments.link(location.href, cid) }; history.replaceState(null, '', saved.link); if ($('autorun').checked && !runSuppressed) run('auto'); else status('Ready — press Run (Ctrl+Enter)'); },
   onSaved(cid, value, link) { saved = { fingerprint: value, link }; history.replaceState(null, '', link); $('hashbin-cid').value = cid; }
 });
 function edited() {
@@ -123,11 +130,17 @@ apply(initial);
 try {
   const parsed = ShareLinks.parse(location.href, LZString.decompressFromEncodedURIComponent);
   runSuppressed = new URL(location.href).searchParams.get('run') === '0';
-  if (parsed?.kind === 'source') apply(parsed);
-  else if (parsed?.kind === 'example') { const sample = PythonExamples.catalog.find(value => value.id === parsed.id); if (!sample) throw Error('Sample not found. Open the Sample gallery to choose a program.'); apply({ src: sample.src, python: { stdin: sample.stdin, autorun: true } }); }
-  const callback = await store.callback(location.search);
-  if (callback) { if (callback.snapshot) apply(callback.snapshot); if (callback.error) $('hashbin-status').textContent = callback.error; else $('hashbin-status').textContent = 'Connected to HashBin. Choose Save to HashBin to save.'; const url = new URL(location.href); for (const key of ['code','state','error','error_description']) url.searchParams.delete(key); history.replaceState(null, '', url.href); }
-  if (parsed?.kind === 'cid') { $('hashbin-cid').value = parsed.cid; await panel.load(parsed.cid); }
+  store.retireLegacyTokens().catch(() => { /* Retried on the next load. */ });
+  if (parsed?.kind === 'publish') {
+    const published = await store.published(location.hash);
+    if (published.snapshot) apply(published.snapshot);
+    if (published.cid) { saved = { fingerprint: fingerprint(), link: HashBinDocuments.link(location.href, published.cid) }; $('hashbin-cid').value = published.cid; }
+    history.replaceState(null, '', saved ? saved.link : links().fallback);
+    $('hashbin-status').textContent = published.error || 'Saved to HashBin.';
+  }
+  else if (parsed?.kind === 'source') { if (acceptLink(parsed)) apply(parsed); else history.replaceState(null, '', links().fallback); }
+  else if (parsed?.kind === 'example') { const sample = PythonExamples.catalog.find(value => value.id === parsed.id); if (!sample) throw Error('Sample not found. Open the Sample gallery to choose a program.'); const value = { src: sample.src, python: { stdin: sample.stdin, autorun: true } }; if (acceptLink(value)) apply(value); else history.replaceState(null, '', links().fallback); }
+  if (parsed?.kind === 'cid') { $('hashbin-cid').value = parsed.cid; linkLoad = true; await panel.load(parsed.cid); linkLoad = false; }
   else if ($('autorun').checked && !runSuppressed) run('auto');
   else status('Ready — press Run (Ctrl+Enter)');
 } catch (error) { state('error'); status(error.message); }
@@ -136,8 +149,8 @@ window.addEventListener('hashchange', async () => {
   try {
     const parsed = ShareLinks.parse(location.href, LZString.decompressFromEncodedURIComponent);
     runSuppressed = parsed?.run === false;
-    if (parsed?.kind === 'cid') { $('hashbin-cid').value = parsed.cid; await panel.load(parsed.cid); }
-    else if (parsed?.kind === 'source') { panel.cancelLoad(); saved = null; apply(parsed); if ($('autorun').checked && !runSuppressed) run('auto'); }
+    if (parsed?.kind === 'cid') { $('hashbin-cid').value = parsed.cid; linkLoad = true; await panel.load(parsed.cid); linkLoad = false; }
+    else if (parsed?.kind === 'source') { if (!acceptLink(parsed)) { history.replaceState(null, '', links().fallback); return; } panel.cancelLoad(); saved = null; apply(parsed); if ($('autorun').checked && !runSuppressed) run('auto'); }
   } catch (error) { status(error.message); state('error'); }
 });
 // A small public inspection surface is useful for accessibility tools and integration tests.

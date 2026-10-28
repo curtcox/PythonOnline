@@ -29,6 +29,7 @@ const ShareLinks = {
       return { kind: 'source', src, python: { stdin: '', autorun: true }, run };
     }
     const hash = link.hash.slice(1);
+    if (new URLSearchParams(hash).has('hashbin_publish')) return { kind: 'publish', run };
     if (HashBinDocuments.isCID(hash)) return { kind: 'cid', cid: hash, run };
     if (hash) return { kind: 'source', ...HashBinDocuments.parse(decodeURIComponent(hash)), run };
     if (params.has('example')) return { kind: 'example', id: params.get('example'), run };

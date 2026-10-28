@@ -76,9 +76,11 @@ HashBin documents use this envelope; bare `.py` content also loads:
 {"format":"hashbin-diagram","version":1,"type":"python","src":"print(input())","python":{"stdin":"hello\n","autorun":true}}
 ```
 
-Saves use the user's HashBin balance and retention settings. A quote is displayed before saving. OAuth tokens stay in sessionStorage; the source snapshot survives the redirect. Source plus input is limited to 5 MiB, including the JSON envelope.
+Choose **Save to HashBin**, then **Review on HashBin**. HashBin Publish shows the size, retention, exact price and your balance, and you approve each save on hashbin.org; this app never holds a HashBin credential. If the popup is blocked, documents up to 512 KiB go through a redirect, and source, input and Auto-run are restored on return, including after a cancelled save. The SDK is pinned to `https://hashbin.org/sdk/v0.2.0/hashbin.js`. Tokens left by the earlier OAuth flow are revoked on the next load. Source plus input is limited to 5 MiB, including the JSON envelope.
 
-**HashBin registration:** “Python Online” is registered with public client ID `app_2eabd9ad-8b90-4635-accd-7583e5241f96`, configured in the `hashbin-client-id` meta tag in `index.html`. Its return URL is **`https://curtcox.github.io/PythonOnline/`** (case-sensitive, trailing slash). Choose **Save to HashBin** to connect your account, then review the quote before saving. If the registration changes, update the meta tag and run `npm run offline`.
+**HashBin registration:** “Python Online” is registered with public client ID `app_2eabd9ad-8b90-4635-accd-7583e5241f96`, configured in the `hashbin-client-id` meta tag in `index.html`. Its return URL is **`https://curtcox.github.io/PythonOnline/`** (case-sensitive, trailing slash). If the registration changes, update the meta tag and run `npm run offline`.
+
+**Shared origin.** Every app under `curtcox.github.io` shares this origin's storage. Share, sample and CID links ask before replacing the program kept in this browser. The service worker serves only cached files that match the SHA-256 hashes in `offline-assets.js` (local files), `scripts/remote-hashes.json` (pinned Pyodide and lz-string files) or the pinned Pyodide lockfile (packages), so another app cannot poison the offline cache. A Content-Security-Policy limits scripts to this site and the pinned HashBin SDK. Python itself runs in a same-origin worker and can reach this origin's IndexedDB and Cache Storage; run untrusted programs with that in mind.
 
 ## Worker and output boundaries
 
