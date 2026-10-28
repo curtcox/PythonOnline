@@ -1,11 +1,14 @@
 # Hosted persistent Python home on hashbin.app
 
-Status: implemented, pushed and deployed 2026-10-28; production acceptance is blocked
-by HashBin's missing `CLOUDFLARE_ANALYTICS_TOKEN`. The run-service brake correctly refuses
-frames until a real current-month measurement can be obtained. HashBin and Pages
-deployments succeeded. Linux CI passes Chromium, Firefox and WebKit full gallery suites,
-30 Node/package tests, 19 Python tests and consistency checks. Local Chromium/WebKit
-also passed; local Firefox's profile launch remains an environment issue.
+Status: implemented, pushed and deployed 2026-10-28. The owner configured HashBin's
+read-only analytics credential; real cost evidence cleared the run brake. Production
+HTTPS acceptance passed: opaque default, hosted origin, file persistence across fresh
+workers and page reloads, editor isolation and incoming-link guard, with no unexpected
+network/CSP failures. HashBin and Pages deployments succeeded. Chromium and Firefox
+CI pass; the full local WebKit gallery/offline suite also passes after waiting for
+runtime preloads before navigation and forced offline transitions. Final CI confirmation is pending. Node/package
+checks pass all 30 tests; Python checks pass all 19 tests. Local Chromium/WebKit functional
+suites pass; local Firefox's profile launch remains an environment issue.
 Runtime pinning, PSL eligibility/submission and Safari retention acceptance remain open.
 HashBin implementation and rollout: https://github.com/curtcox/hashbin.org/blob/main/todo/hosted_run_origin.md
 
@@ -70,10 +73,10 @@ claim files were saved. Stop, timeouts and superseded runs may lose unflushed wr
       Public RDAP confirms registration 2026-10-28 and expiry 2027-10-28 with transfer lock.
       PSL needs a longer registration term and qualifying public usage; no renewal purchase was made.
 - [x] Deploy main then run Worker; run-origin deployment/verification is in CI.
-- [ ] Configure the missing read-only `CLOUDFLARE_ANALYTICS_TOKEN` GitHub Actions secret,
-      redeploy HashBin, and initialize current-month safety evidence using the admin costs
-      page. The owner has prepared Cloudflare and GitHub forms for credential entry.
-      Do not bypass the brake or install synthetic measurement data.
+- [x] The owner configured account-scoped Account Analytics Read as the
+      `CLOUDFLARE_ANALYTICS_TOKEN` Actions secret; deployment installed it. An audited real
+      measurement (39 requests, less than one cent) cleared the run brake. Rotate the
+      token before 2027-01-26. No synthetic evidence or budget override was used.
 - [x] Enable hosted mode for Python Online using the owner's session. Verify allowed
       embedders and runtime/request caps. Do not enable unrelated apps for the pilot.
 - [ ] Pin Pyodide 314.0.7 core bytes using the existing `scripts/remote-hashes.json`
@@ -89,7 +92,9 @@ claim files were saved. Stop, timeouts and superseded runs may lose unflushed wr
 
 ## Acceptance
 
-- [x] Existing CPython/Node tests, package tests, Python unit tests and Chromium/Firefox/WebKit CI browser suites pass.
+- [x] Existing CPython/Node, package and Python unit tests pass. Chromium/Firefox CI pass;
+      WebKit full local integration checks pass after settling runtime preloads before
+      gallery navigation/offline transitions. Final CI confirmation is pending.
 - [x] With persistence off, worker origin is null and program storage APIs remain hidden.
 - [x] With persistence on, origin is the exact app origin, writing a file in one worker
       and reading it in a fresh worker/page reload succeeds.
@@ -97,10 +102,10 @@ claim files were saved. Stop, timeouts and superseded runs may lose unflushed wr
 - [x] HashBin Chromium/WebKit measurements isolate top-level-site partitions.
 - [x] HashBin Chromium/WebKit browser tests verify two enabled app labels cannot read
       or overwrite each other's IndexedDB. Production still enables only Python Online.
-- [ ] Live HTTPS pilot acceptance: `npm run test:hosted:live` uses a fresh browser context
+- [x] Live HTTPS pilot acceptance: `npm run test:hosted:live` uses a fresh browser context
       and no account credentials/uploads. It verifies opaque default, hosted origin, file
       restoration across a fresh worker and reload, editor isolation and incoming-link guard;
-      saves `test-results/live-hosted.png`. Run after the real cost gate opens.
+      saves `test-results/live-hosted.png`. Passed against the real cost-gated deployment.
       `PLAYWRIGHT_EXECUTABLE_PATH` selects an installed Chromium. An optional
       `HOSTED_DNS_ADDRESS` addresses local negative DNS caching without bypassing TLS.
 - [x] Incoming share/CID/gallery links cannot enable or reuse persistent execution silently.
@@ -110,3 +115,14 @@ claim files were saved. Stop, timeouts and superseded runs may lose unflushed wr
 - [x] Opaque offline execution, rich-output sandboxes, publish callbacks and mobile controls
       still work. Verify the deployed Pages workflow and live app before claiming rollout.
 
+
+Production bootstrap patch: SDK v0.4.0 stays immutable. HashBin's v0.4.0 frame now loads
+`/frame/v0.4.1.js`, whose literal source survives Wrangler/esbuild name preservation.
+The initial serialized function captured an undefined bundler helper; a bundle regression
+test now covers it. `no-transform` prevents Cloudflare injecting a beacon forbidden by
+the frame CSP. No runtime assets were uploaded or funded during this pilot.
+
+Browser acceptance now waits for active and spare runtime initialization before gallery
+navigation and forced offline transitions. This avoids WebKit reporting canceled in-flight
+preloads as page errors. Offline reload still constructs a fresh worker and executes Python;
+all page errors and unexpected app CSP violations remain failures. DEBUG logs tag errors by phase.

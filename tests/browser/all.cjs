@@ -79,20 +79,28 @@ const timeout = 120000;
       return localStorage.getItem('pythononline:test:replace') !== 'cancel';
     };
   });
-  const errors = []; page.on('pageerror',error=>errors.push(String(error))); if (process.env.DEBUG) { page.on('console',m=>console.log('console:',m.text())); context.on('weberror',e=>console.log('weberror:',String(e.error()))); }
+  let phase = 'startup'; const checkpoint = text => { phase = text; console.log(text); };
+  const errors = []; page.on('pageerror',error=>{ errors.push(String(error)); if (process.env.DEBUG) console.log('pageerror at', phase, String(error)); }); if (process.env.DEBUG) { page.on('console',m=>console.log('console:',m.text())); context.on('weberror',e=>console.log('weberror:',String(e.error()))); }
   async function ready() { await page.waitForFunction(()=>!!globalThis.PythonOnline); }
+  async function preloadsReady() {
+    // Going offline in the middle of an earlier preload cancels its in-flight
+    // network requests in WebKit. Exercise an installed, settled app first;
+    // the offline reload below still has to initialize a completely new worker.
+    await page.waitForFunction(() => PythonOnline.client.active.ready &&
+      (!PythonOnline.client.spare || PythonOnline.client.spare.ready), null, { timeout });
+  }
   async function finished() { await page.waitForFunction(()=>['done','error','idle'].includes(document.body.dataset.state),null,{timeout}); }
   async function run(source,stdin='') {
     await page.evaluate(({source,stdin})=>{ document.getElementById('autorun').checked=false; PythonOnline.editor.setValue(source,-1); document.getElementById('stdin').value=stdin; PythonOnline.run(); },{source,stdin});
     await finished();
   }
   try {
-    console.log('Checking default program');
+    checkpoint('Checking default program');
     await page.goto(base); await ready(); await finished();
     assert.equal(await page.locator('body').getAttribute('data-state'),'done'); assert.match(await page.locator('#output').innerText(),/Hello, Ada/);
     await page.locator('#output .turtle-canvas svg').waitFor(); await page.getByRole('button',{name:'Skip animation',exact:true}).click();
     await page.locator('#download-open').click(); const drawing = page.waitForEvent('download'); await page.locator('#download-svg').click(); assert.equal((await drawing).suggestedFilename(),'drawing.svg'); await page.locator('[data-close="download-dialog"]').click();
-    console.log('Checking live edits, input and security');
+    checkpoint('Checking live edits, input and security');
     // Live edits rerun after the debounce, and annotations point to the last user frame.
     await page.evaluate(()=>{ PythonOnline.editor.setValue('print("automatic edit")',-1); }); await page.waitForFunction(()=>document.getElementById('output').textContent.includes('automatic edit'));
     await run('print("before error")\n1 / 0'); assert.match(await page.locator('#status').innerText(),/line 2/); assert.equal(await page.evaluate(()=>PythonOnline.editor.session.getAnnotations()[0].row),1); assert.match(await page.locator('#output').innerText(),/before error/);
@@ -101,7 +109,7 @@ const timeout = 120000;
     // Regression check for SN-2026-001: programs run in an opaque origin, apart from this app's storage.
     await run('import js\nprint("origin", js.self.origin)'); assert.match(await page.locator('#output').innerText(),/origin null/);
     assert.deepEqual(await page.evaluate(()=>[...document.querySelectorAll('iframe[title="Code sandbox"]')].map(frame=>frame.getAttribute('sandbox')).filter(value=>value!=='allow-scripts')),[]);
-    console.log('Checking hosted Python filesystem persistence and incoming-link isolation');
+    checkpoint('Checking hosted Python filesystem persistence and incoming-link isolation');
     await page.locator('#more-toggle').click();
     await page.locator('#persistent-home').check();
     await run('from pathlib import Path\nPath("persistent-test.txt").write_text("files survive")\nprint("written")');
@@ -134,15 +142,15 @@ const timeout = 120000;
     assert.match(await page.locator('#output').innerText(),/fragment origin null/);
     await page.evaluate(()=>localStorage.removeItem('pythononline:persistent-home'));
     if (await page.locator('#persistent-home').isVisible()) await page.locator('#more-toggle').click();
-    console.log('Checking timeouts and Stop');
+    checkpoint('Checking timeouts and Stop');
     // Auto-run timeout starts only once dependencies are ready; spare must recover.
     await page.evaluate(()=>{ PythonOnline.editor.setValue('while True: pass',-1); PythonOnline.run('auto'); }); await page.waitForFunction(()=>document.getElementById('status').textContent.includes('Stopped after 5 s'));
     await run('print("recovered")'); assert.match(await page.locator('#output').innerText(),/recovered/);
     await page.evaluate(()=>{ PythonOnline.editor.setValue('while True: pass',-1); PythonOnline.run(); }); await page.waitForFunction(()=>document.getElementById('status').textContent.startsWith('Running')); await page.locator('#stop').click(); assert.equal(await page.locator('#status').innerText(),'Stopped');
-    console.log('Checking rich output');
+    checkpoint('Checking rich output');
     await run('display(HTML("<script>parent.hacked=true</script><b>safe table</b>"))\ndisplay(Markdown("# Heading\\n[bad](javascript:alert(1))"))');
     assert.equal(await page.locator('#output iframe').first().getAttribute('sandbox'),''); assert.equal(await page.evaluate(()=>globalThis.hacked),undefined); assert.equal(await page.locator('#output iframe').count(),2);
-    console.log('Checking share links');
+    checkpoint('Checking share links');
     await run('print(input())','shared input\n'); await page.locator('#share-open').click(); const shared = await page.locator('#share-url').inputValue();
     const other = await context.newPage(); await other.goto(shared); await other.waitForFunction(()=>!!globalThis.PythonOnline); assert.equal(await other.evaluate(()=>PythonOnline.snapshot().python.stdin),'shared input\n'); await other.close();
     await page.evaluate(()=>{ const original = globalThis.fetch; globalThis.fetch = (url, options) => String(url).startsWith('https://api.allorigins.win/') ? Promise.resolve(new Response(JSON.stringify({contents:'https://is.gd/test123'}),{headers:{'Content-Type':'application/json'}})) : original(url, options); }); await page.locator('#shorten').click(); await page.waitForFunction(()=>document.getElementById('share-url').value==='https://is.gd/test123'); await page.locator('[data-close="share-dialog"]').click();
@@ -153,26 +161,27 @@ const timeout = 120000;
     const cidSource = Buffer.from('print("CID load")'); const inline = Buffer.from([0,0,0,0,0,cidSource.length]).toString('base64url')+cidSource.toString('base64url');
     await page.evaluate(()=>localStorage.setItem('pythononline:test:replace','cancel')); await page.goto(base+'/#'+inline); await page.waitForFunction(()=>!!globalThis.PythonOnline); await page.waitForTimeout(300); assert.equal(await page.evaluate(()=>PythonOnline.snapshot().src),'print(input())'); assert.ok(!page.url().includes(inline)); assert.match(await page.evaluate(()=>window.__replacementWarning),/Replace the program saved in this browser/);
     await page.evaluate(()=>localStorage.removeItem('pythononline:test:replace')); await page.goto(base+'/#'+inline); await ready(); await page.waitForFunction(()=>document.getElementById('output').textContent.includes('CID load'));
-    console.log('Checking matplotlib and pandas');
+    checkpoint('Checking matplotlib and pandas');
     // Rich figure capture, downloads, and DataFrame sandbox.
     await run('import matplotlib.pyplot as plt\nplt.plot([1,2,3])\nplt.show()'); assert.equal(await page.locator('body').getAttribute('data-state'),'done'); await page.locator('#output .figure-canvas svg').waitFor();
     await page.locator('#download-open').click(); const png = page.waitForEvent('download'); await page.locator('#download-png').click(); assert.equal((await png).suggestedFilename(),'image.png'); await page.locator('[data-close="download-dialog"]').click();
     await run('import pandas as pd\ndisplay(pd.DataFrame({"value":[1,2]}))'); await page.locator('#output iframe').waitFor();
-    console.log('Checking gallery');
-    await page.goto(base+'/gallery.html'); assert.equal(await page.locator('#gallery article').count(),25); await page.locator('#search').fill('snowflake'); assert.equal(await page.locator('#gallery article').count(),1);
+    checkpoint('Checking gallery');
+    await preloadsReady(); await page.goto(base+'/gallery.html'); assert.equal(await page.locator('#gallery article').count(),25); await page.locator('#search').fill('snowflake'); assert.equal(await page.locator('#gallery article').count(),1);
     await page.evaluate(()=>localStorage.removeItem('pythononline:test:replace')); await page.goto(base+'/?example=256t-function&run=0'); await ready(); await page.evaluate(()=>PythonOnline.run()); await finished();
     assert.match(await page.locator('#output').innerText(),/roman\(2026\) = MMXXVI[\s\S]*Hello, Ada!/);
     if (process.env.FULL_GALLERY) {
       // Validate sample execution independently of the auto-run limit on slower CI hosts.
       // The default auto-run and its five-second timeout are exercised above.
       for (const sample of require('../../src/examples.js').catalog) {
-        console.log('Checking gallery sample: '+sample.id);
+        checkpoint('Checking gallery sample: '+sample.id);
+        await preloadsReady();
         await page.goto(base+'/?example='+sample.id+'&run=0'); await ready();
         await page.evaluate(()=>PythonOnline.run()); await finished();
         assert.equal(await page.locator('body').getAttribute('data-state'),'done',sample.id+': '+await page.locator('#status').innerText()+'\n'+await page.locator('#output').innerText());
       }
     }
-    console.log('Checking HashBin Publish saves, legacy token revocation and stale-load protection');
+    checkpoint('Checking HashBin Publish saves, legacy token revocation and stale-load protection');
     const authContext = await browser.newContext({serviceWorkers:'block'});
     const auth = await authContext.newPage(); auth.setDefaultTimeout(15000);
     const fullCID = text => { const data = Buffer.from(text), size = Buffer.alloc(6); size.writeUIntBE(data.length,0,6); return size.toString('base64url') + (data.length <= 64 ? data : require('node:crypto').createHash('sha512').update(data).digest()).toString('base64url'); };
@@ -205,26 +214,26 @@ const timeout = 120000;
     await page.evaluate(()=>{const script=document.createElement('script');script.src='https://example.invalid/injected.js';document.head.append(script);});
     await new Promise(resolve=>{const wait=()=>violations.some(v=>v.includes('example.invalid'))?resolve():setTimeout(wait,50);wait();});
     assert.deepEqual(violations.filter(v=>!v.includes('example.invalid')),[],'Content-Security-Policy violations');
-    console.log('Checking mobile');
+    checkpoint('Checking mobile');
     // Mobile tabs, touch target sizes, no horizontal overflow.
     await page.setViewportSize({width:375,height:812}); await page.goto(base+'/?run=0'); await ready();
     await page.getByRole('button',{name:'Code',exact:true}).click(); await page.locator('#editor').waitFor({state:'visible'}); await page.getByRole('button',{name:/^Input/}).click(); await page.locator('#stdin').waitFor({state:'visible'});
     await page.locator('#more-toggle').click(); assert.ok(await page.locator('.mobile-actions').isVisible());
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)); assert.ok((await page.locator('#run').boundingBox()).height>=40);
-    console.log('Checking offline');
+    checkpoint('Checking offline');
     // Wait for atomic offline install, then disable all network and reload.
     await page.setViewportSize({width:1280,height:800}); await page.waitForFunction(()=>!!navigator.serviceWorker.controller,null,{timeout});
     await page.waitForFunction(()=>document.getElementById('offline-status').textContent==='Available offline',null,{timeout});
     // A sibling app on the same origin can write this app's Cache Storage; altered entries are never served.
     await page.evaluate(async()=>{const cache=await caches.open((await caches.keys()).find(name=>name.startsWith('pythononline-')));await cache.put(new URL('src/qr.js',location.href).href,new Response('globalThis.poisonedCache=true;',{headers:{'Content-Type':'text/javascript'}}));});
-    await page.reload(); await ready(); assert.equal(await page.evaluate(()=>globalThis.poisonedCache),undefined);
+    checkpoint('Checking poisoned cache reload'); await page.reload(); await ready(); assert.equal(await page.evaluate(()=>globalThis.poisonedCache),undefined);
     await page.waitForFunction(()=>document.getElementById('offline-status').textContent==='Offline setup incomplete',null,{timeout}); await page.locator('#offline-action').click(); await page.waitForFunction(()=>document.getElementById('offline-status').textContent==='Available offline',null,{timeout});
-    await context.setOffline(true); await page.reload(); await ready(); await run('print("offline success")'); assert.match(await page.locator('#output').innerText(),/offline success/); await context.setOffline(false);
+    checkpoint('Checking offline worker reload'); await preloadsReady(); await context.setOffline(true); await page.reload(); await ready(); await run('print("offline success")'); assert.match(await page.locator('#output').innerText(),/offline success/); await context.setOffline(false);
     // The gallery reads a new deploy from the network while the editor keeps its cached version.
     const gallery = await context.newPage(); freshLabel = 'Hello, deployed Python';
     await gallery.goto(base+'/gallery.html'); assert.equal(await gallery.locator('.card h2').first().textContent(),freshLabel);
     // Offline it falls back to the cache. Firefox may answer from its HTTP cache first instead.
-    await context.setOffline(true); await gallery.reload(); assert.match(await gallery.locator('.card h2').first().textContent(),engine === 'firefox' ? /^Hello, (?:deployed )?Python$/ : /^Hello, Python$/);
+    await preloadsReady(); await context.setOffline(true); await gallery.reload(); assert.match(await gallery.locator('.card h2').first().textContent(),engine === 'firefox' ? /^Hello, (?:deployed )?Python$/ : /^Hello, Python$/);
     await context.setOffline(false); await gallery.close(); freshLabel = '';
     await page.evaluate(()=>{const sample=PythonExamples.catalog[0];PythonOnline.editor.setValue(sample.src,-1);document.getElementById('stdin').value=sample.stdin;document.getElementById('stdin').dispatchEvent(new Event('input'));PythonOnline.run();}); await finished();
     await page.getByRole('button',{name:'Skip animation',exact:true}).click();
