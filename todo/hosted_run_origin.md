@@ -1,11 +1,12 @@
 # Hosted persistent Python home on hashbin.app
 
-Status: implemented and locally verified 2026-10-28; production activation in progress.
-HashBin is deployed on hashbin.app with approved proxied apex/wildcard DNS, active
-Universal SSL, HTTPS redirection and TLS 1.2. The consumer implementation passes 19
-Python tests, 29 Node/package tests, consistency checks and the full Chromium/WebKit
-browser suite. Firefox cannot launch its installed profile on this host. Runtime
-pinning, PSL eligibility/submission and Safari retention acceptance remain open.
+Status: implemented, pushed and deployed 2026-10-28; production acceptance is blocked
+by HashBin's missing `CLOUDFLARE_ANALYTICS_TOKEN`. The run-service brake correctly refuses
+frames until a real current-month measurement can be obtained. HashBin and Pages
+deployments succeeded. Linux CI passes Chromium, Firefox and WebKit full gallery suites,
+30 Node/package tests, 19 Python tests and consistency checks. Local Chromium/WebKit
+also passed; local Firefox's profile launch remains an environment issue.
+Runtime pinning, PSL eligibility/submission and Safari retention acceptance remain open.
 HashBin implementation and rollout: https://github.com/curtcox/hashbin.org/blob/main/todo/hosted_run_origin.md
 
 ## Contract
@@ -65,11 +66,15 @@ claim files were saved. Stop, timeouts and superseded runs may lose unflushed wr
 ## HashBin rollout dependencies
 
 - [x] Configure hashbin.app in both production Workers and the SDK default.
-- [ ] Verify domain ownership/registration term, proxied apex and wildcard DNS,
-      Universal SSL, HTTPS and minimum TLS; the Worker already sends HSTS.
-- [ ] Deploy the main Worker before the run Worker; wire the run Worker into deployment
-      and verification. Initialize current-month Analytics Engine safety evidence.
-- [ ] Enable hosted mode for Python Online using the owner's session. Verify allowed
+- [x] Verify active zone, proxied apex and wildcard DNS, Universal SSL, HTTPS and TLS 1.2.
+      Public RDAP confirms registration 2026-10-28 and expiry 2027-10-28 with transfer lock.
+      PSL needs a longer registration term and qualifying public usage; no renewal purchase was made.
+- [x] Deploy main then run Worker; run-origin deployment/verification is in CI.
+- [ ] Configure the missing read-only `CLOUDFLARE_ANALYTICS_TOKEN` GitHub Actions secret,
+      redeploy HashBin, and initialize current-month safety evidence using the admin costs
+      page. The owner has prepared Cloudflare and GitHub forms for credential entry.
+      Do not bypass the brake or install synthetic measurement data.
+- [x] Enable hosted mode for Python Online using the owner's session. Verify allowed
       embedders and runtime/request caps. Do not enable unrelated apps for the pilot.
 - [ ] Pin Pyodide 314.0.7 core bytes using the existing `scripts/remote-hashes.json`
       upstream hashes. Include `pyodide.mjs`, `pyodide.asm.mjs`,
@@ -78,18 +83,26 @@ claim files were saved. Stop, timeouts and superseded runs may lose unflushed wr
       Upload only after retention/price approval under the publisher grant.
 - [ ] Submit hashbin.app to the PSL PRIVATE section with the owner contact and _psl TXT
       reference after domain eligibility is verified. Track browser rollout separately.
-- [ ] Confirm real Safari seven-day retention and run Firefox acceptance once the
-      installed browser can start. Local Chromium/WebKit results are already recorded
+- [ ] Confirm real Safari seven-day retention and Firefox browser-restart/partitioning
+      measurements. Python Online's Linux Firefox integration suite already passes. Local Chromium/WebKit results are already recorded
       by HashBin; they do not establish production Safari retention.
 
 ## Acceptance
 
-- [x] Existing CPython/Node tests, package tests, Python unit tests and Chromium/WebKit browser suite pass (Firefox launch blocked locally).
+- [x] Existing CPython/Node tests, package tests, Python unit tests and Chromium/Firefox/WebKit CI browser suites pass.
 - [x] With persistence off, worker origin is null and program storage APIs remain hidden.
 - [x] With persistence on, origin is the exact app origin, writing a file in one worker
       and reading it in a fresh worker/page reload succeeds.
 - [x] No editor localStorage/sessionStorage/DOM is reachable from hosted Python.
-- [ ] A different app label or top-level-site partition cannot read the pilot file.
+- [x] HashBin Chromium/WebKit measurements isolate top-level-site partitions.
+- [x] HashBin Chromium/WebKit browser tests verify two enabled app labels cannot read
+      or overwrite each other's IndexedDB. Production still enables only Python Online.
+- [ ] Live HTTPS pilot acceptance: `npm run test:hosted:live` uses a fresh browser context
+      and no account credentials/uploads. It verifies opaque default, hosted origin, file
+      restoration across a fresh worker and reload, editor isolation and incoming-link guard;
+      saves `test-results/live-hosted.png`. Run after the real cost gate opens.
+      `PLAYWRIGHT_EXECUTABLE_PATH` selects an installed Chromium. An optional
+      `HOSTED_DNS_ADDRESS` addresses local negative DNS caching without bypassing TLS.
 - [x] Incoming share/CID/gallery links cannot enable or reuse persistent execution silently.
 - [x] Read/write/quota failures remain visible and do not produce a false saved status.
 - [x] Stop and storage-mode switching discard stale messages; no warm spare restores
