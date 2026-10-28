@@ -4,11 +4,10 @@ Status: implemented, pushed and deployed 2026-10-28. The owner configured HashBi
 read-only analytics credential; real cost evidence cleared the run brake. Production
 HTTPS acceptance passed: opaque default, hosted origin, file persistence across fresh
 workers and page reloads, editor isolation and incoming-link guard, with no unexpected
-network/CSP failures. HashBin and Pages deployments succeeded. Chromium and Firefox
-CI pass; the full local WebKit gallery/offline suite also passes after waiting for
-runtime preloads before navigation and forced offline transitions. Final CI confirmation is pending. Node/package
-checks pass all 30 tests; Python checks pass all 19 tests. Local Chromium/WebKit functional
-suites pass; local Firefox's profile launch remains an environment issue.
+network/CSP failures. HashBin and Pages deployments succeeded. Final Linux CI is green
+in Chromium, Firefox and WebKit, including all gallery URLs and offline checks, plus
+30 Node/package tests, 19 Python tests and consistency checks. Local Chromium/WebKit
+also pass; local Firefox's profile launch remains an environment issue.
 Runtime pinning, PSL eligibility/submission and Safari retention acceptance remain open.
 HashBin implementation and rollout: https://github.com/curtcox/hashbin.org/blob/main/todo/hosted_run_origin.md
 
@@ -92,9 +91,8 @@ claim files were saved. Stop, timeouts and superseded runs may lose unflushed wr
 
 ## Acceptance
 
-- [x] Existing CPython/Node, package and Python unit tests pass. Chromium/Firefox CI pass;
-      WebKit full local integration checks pass after settling runtime preloads before
-      gallery navigation/offline transitions. Final CI confirmation is pending.
+- [x] Existing CPython/Node, package and Python unit tests pass; full Chromium/Firefox/WebKit
+      CI browser suites pass, including gallery navigation and fresh offline worker initialization.
 - [x] With persistence off, worker origin is null and program storage APIs remain hidden.
 - [x] With persistence on, origin is the exact app origin, writing a file in one worker
       and reading it in a fresh worker/page reload succeeds.
@@ -130,4 +128,8 @@ all page errors and unexpected app CSP violations remain failures. DEBUG logs ta
 The simulated gallery deployment now derives a fixture cache version from the rewritten
 asset hashes. This matches production and prevents a waiting test service worker from
 overwriting the open editor's cache. Full Chromium and WebKit gallery/offline suites pass
-locally with this fixture; the final Linux matrix verifies the same change.
+locally with this fixture; the final Linux matrix also passes in all three engines.
+
+Final implementation verification: [Python Online CI at 233c0c8](https://github.com/curtcox/PythonOnline/actions/runs/40779949350)
+and [HashBin deployment at 4fd7e51](https://github.com/curtcox/hashbin.org/actions/runs/40778712524).
+Subsequent acceptance-note changes do not change shipped assets.
