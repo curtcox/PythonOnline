@@ -1,7 +1,7 @@
 /* Python executes only here: a worker inside HashBin's isolated sandbox (src/python-sandbox.js).
    It runs after src/python-core.js and the SDK prelude, which provides hashbinSandbox. */
 const send = self.postMessage.bind(self);
-let core;
+let core, startupError;
 const persistent = typeof PYTHON_PERSISTENT_HOME !== 'undefined' && PYTHON_PERSISTENT_HOME === true && hashbinSandbox.origin !== 'null';
 const ready = (async () => {
   const start = performance.now();
@@ -27,8 +27,13 @@ const ready = (async () => {
   core.install(Object.fromEntries(modules.map((name, index) => [name, sources[index]])));
   harden(self, { persistent });
   send({ type: 'ready', ms: performance.now() - start });
-})().catch(error => { send({ type: 'fatal', error: String(error) }); throw error; });
+})().catch(error => {
+  // Report startup failure through the protocol. A rethrow here also produces
+  // an unhandled rejection when an unused warm worker loses network access.
+  startupError = error;
+  send({ type: 'fatal', error: String(error) });
+});
 self.onmessage = async ({ data }) => {
-  try { await ready; await core.run(data); }
+  try { await ready; if (startupError) throw startupError; await core.run(data); }
   catch (error) { send({ type: 'fatal', error: String(error), id: data.id }); }
 };

@@ -54,3 +54,18 @@ test('persistent clients never preload stale filesystem snapshots and ignore dis
   client.dispose(); const count = messages.length;
   workers[1].onerror({ message: 'stale' }); assert.equal(messages.length, count);
 });
+
+test('worker startup failures use fatal messages without an unhandled rejection', async () => {
+  const fs = require('node:fs'), vm = require('node:vm');
+  const messages = [];
+  const scope = { performance, PYODIDE_URL: 'https://runtime.example/', postMessage: item => messages.push(item),
+    hashbinSandbox: { import: async () => { throw new Error('Runtime offline'); } } };
+  scope.self = scope;
+  vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname, '../src/python-worker.js'), 'utf8'), scope);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.match(messages.find(item => item.type === 'fatal').error, /Runtime offline/);
+  await scope.onmessage({ data: { id: 7 } });
+  assert.equal(messages.at(-1).type, 'fatal');
+  assert.equal(messages.at(-1).error, 'Error: Runtime offline');
+  assert.equal(messages.at(-1).id, 7);
+});

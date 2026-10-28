@@ -10,11 +10,15 @@ const PythonSandbox = {
   factory(sdk, { base = new URL('src/', location.href).href, persistent = false,
     clientId = globalThis.document?.querySelector('meta[name="hashbin-client-id"]')?.content,
     runDomain = 'hashbin.app' } = {}) {
-    return () => sdk.createSandbox({
-      source: this.source().then(source => `const PYTHON_PERSISTENT_HOME = ${persistent === true};\n${source}`),
-      origin: persistent ? 'hosted' : 'opaque', clientId, runDomain,
-      base, proxy: [PYODIDE_URL, new URL('py/', base).href]
-    });
+    return () => {
+      const source = this.source().then(source => `const PYTHON_PERSISTENT_HOME = ${persistent === true};\n${source}`);
+      // The SDK awaits source after frame load; failures can arrive earlier.
+      // Keep the rejected promise for its normal onerror path without creating
+      // an unhandled parent-page rejection in that gap.
+      source.catch(() => {});
+      return sdk.createSandbox({ source, origin: persistent ? 'hosted' : 'opaque', clientId, runDomain,
+        base, proxy: [PYODIDE_URL, new URL('py/', base).href] });
+    };
   }
 };
 if (typeof module !== 'undefined') module.exports = PythonSandbox; else globalThis.PythonSandbox = PythonSandbox;

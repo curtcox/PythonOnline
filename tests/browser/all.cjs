@@ -64,7 +64,10 @@ const timeout = 120000;
   }
   // The Content-Security-Policy must not block anything the app itself does.
   const violations = []; await context.exposeBinding('__cspViolation',(_,text)=>violations.push(text));
-  await context.addInitScript(()=>addEventListener('securitypolicyviolation',event=>globalThis.__cspViolation?.(event.violatedDirective+' '+event.blockedURI+' '+location.pathname)));
+  // Observe the app policy. Rich-output documents intentionally forbid scripts,
+  // including data-URL test instrumentation in Firefox. Their empty sandbox and
+  // refusal to execute user scripts are asserted separately below.
+  await context.addInitScript(()=>{ if (self === top) addEventListener('securitypolicyviolation',event=>globalThis.__cspViolation?.(event.violatedDirective+' '+event.blockedURI+' '+location.pathname)); });
   const page = await context.newPage(); page.setDefaultTimeout(15000);
   // Make the app's synchronous replacement choice deterministic across page
   // navigations. Headless Chromium can dismiss a native dialog while changing
