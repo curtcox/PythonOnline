@@ -47,7 +47,11 @@ function testManifest() {
   // The test SDK replaces the vendored one, so it must be available offline too.
   assets.push('__hashbin_sdk__.js');
   for (const asset of assets) hashes[asset] = asset === '__hashbin_sdk__.js' ? sha(fs.readFileSync(path.join(root,'tests/browser/fixtures/hashbin-sdk.mjs'))) : asset.startsWith(pyodide) ? sha(fs.readFileSync(local(asset.slice(pyodide.length)))) : /^https:/.test(asset) ? manifest.hashes[asset] : sha(served(path.join(root,asset)));
-  return 'const OfflineAssets = '+JSON.stringify({...manifest,pyodide,assets,hashes})+';\nif (typeof module !== "undefined") module.exports = OfflineAssets;\nelse globalThis.OfflineAssets = OfflineAssets;\n';
+  // A simulated deploy must get a different cache, just as update-offline does
+  // in production. Reusing its version with changed hashes lets a waiting worker
+  // overwrite the open editor's verified cache during the gallery update check.
+  const version = manifest.version+'-fixture-'+sha(JSON.stringify(hashes)).slice(0,12);
+  return 'const OfflineAssets = '+JSON.stringify({...manifest,version,pyodide,assets,hashes})+';\nif (typeof module !== "undefined") module.exports = OfflineAssets;\nelse globalThis.OfflineAssets = OfflineAssets;\n';
 }
 const engine = process.env.BROWSER || 'chromium';
 const timeout = 120000;

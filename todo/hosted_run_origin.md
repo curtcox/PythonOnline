@@ -126,3 +126,8 @@ Browser acceptance now waits for active and spare runtime initialization before 
 navigation and forced offline transitions. This avoids WebKit reporting canceled in-flight
 preloads as page errors. Offline reload still constructs a fresh worker and executes Python;
 all page errors and unexpected app CSP violations remain failures. DEBUG logs tag errors by phase.
+
+The simulated gallery deployment now derives a fixture cache version from the rewritten
+asset hashes. This matches production and prevents a waiting test service worker from
+overwriting the open editor's cache. Full Chromium and WebKit gallery/offline suites pass
+locally with this fixture; the final Linux matrix verifies the same change.
