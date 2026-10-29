@@ -171,18 +171,32 @@ const timeout = 120000;
     await page.locator('#download-open').click(); const png = page.waitForEvent('download'); await page.locator('#download-png').click(); assert.equal((await png).suggestedFilename(),'image.png'); await page.locator('[data-close="download-dialog"]').click();
     await run('import pandas as pd\ndisplay(pd.DataFrame({"value":[1,2]}))'); await page.locator('#output iframe').waitFor();
     checkpoint('Checking gallery');
-    await preloadsReady(); await page.goto(base+'/gallery.html'); assert.equal(await page.locator('#gallery article').count(),25); await page.locator('#search').fill('snowflake'); assert.equal(await page.locator('#gallery article').count(),1);
+    await preloadsReady(); await page.goto(base+'/gallery.html'); assert.equal(await page.locator('#gallery article').count(),require('../../src/examples.js').catalog.length); await page.locator('#search').fill('snowflake'); assert.equal(await page.locator('#gallery article').count(),1);
+    for (const id of ['shiny','gradio']) {
+      await page.locator('#search').fill(id);
+      assert.equal(await page.locator('#gallery article').count(),1);
+      assert.equal(await page.locator('#gallery .card').getAttribute('href'),'./?example='+id);
+      await page.locator('#search').fill(''); await page.locator('#tag').selectOption(id);
+      assert.equal(await page.locator('#gallery article').count(),1);
+      await page.locator('#tag').selectOption('');
+    }
     await page.evaluate(()=>localStorage.removeItem('pythononline:test:replace')); await page.goto(base+'/?example=256t-function&run=0'); await ready(); await page.evaluate(()=>PythonOnline.run()); await finished();
     assert.match(await page.locator('#output').innerText(),/roman\(2026\) = MMXXVI[\s\S]*Hello, Ada!/);
-    if (process.env.FULL_GALLERY) {
+    {
       // Validate sample execution independently of the auto-run limit on slower CI hosts.
       // The default auto-run and its five-second timeout are exercised above.
-      for (const sample of require('../../src/examples.js').catalog) {
+      for (const sample of require('../../src/examples.js').catalog.filter(sample => process.env.FULL_GALLERY || ['shiny','gradio'].includes(sample.id))) {
         checkpoint('Checking gallery sample: '+sample.id);
         await preloadsReady();
         await page.goto(base+'/?example='+sample.id+'&run=0'); await ready();
         await page.evaluate(()=>PythonOnline.run()); await finished();
         assert.equal(await page.locator('body').getAttribute('data-state'),'done',sample.id+': '+await page.locator('#status').innerText()+'\n'+await page.locator('#output').innerText());
+        if (sample.id === 'shiny') {
+          assert.match(await page.locator('#output').innerText(),/Total: \$36[\s\S]*Total: \$60/);
+          assert.equal(await page.locator('#output iframe').getAttribute('sandbox'),'');
+          assert.match(await page.locator('#output iframe').getAttribute('srcdoc'),/<table>[\s\S]*\$36[\s\S]*\$60/);
+        }
+        if (sample.id === 'gradio') assert.match(await page.locator('#output').innerText(),/Hello, Ada![\s\S]*Hello, Grace!/);
       }
     }
     checkpoint('Checking HashBin Publish saves, legacy token revocation and stale-load protection');

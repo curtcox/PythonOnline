@@ -43,6 +43,26 @@ test('matplotlib captures vector and raster figures', { skip: !process.env.TEST_
   const figure = result.items.find(i => i.type === 'figure'); assert.match(figure.svg, /<svg/); assert.ok(figure.png.length > 100);
 });
 
+test('Shiny and Gradio gallery samples execute with real packages and updated input', { skip: !process.env.TEST_PACKAGES }, async () => {
+  const { catalog } = require('../src/examples.js');
+  const shiny = catalog.find(sample => sample.id === 'shiny');
+  let result = await run(shiny.src, shiny.stdin);
+  assert.equal(result.ok, true, result.error);
+  assert.match(result.text, /Total: \$36[\s\S]*Total: \$60/);
+  assert.match(result.items.find(item => item.type === 'html').data, /<table>[\s\S]*\$36[\s\S]*\$60/);
+  result = await run(shiny.src, '2\n7\n');
+  assert.equal(result.ok, true, result.error);
+  assert.match(result.text, /Total: \$24[\s\S]*Total: \$84/);
+
+  const gradio = catalog.find(sample => sample.id === 'gradio');
+  result = await run(gradio.src, gradio.stdin);
+  assert.equal(result.ok, true, result.error);
+  assert.match(result.text, /Hello, Ada![\s\S]*Hello, Grace!/);
+  result = await run(gradio.src, '  Lin  \n\n');
+  assert.equal(result.ok, true, result.error);
+  assert.match(result.text, /Hello, Lin![\s\S]*Hello, Python learner!/);
+});
+
 test('malformed package metadata reports a useful error and the next run recovers', async () => {
   const malformed = await run('# /// script\n# dependencies = "wrong"\n# ///\nprint(1)');
   assert.equal(malformed.ok, false); assert.match(malformed.error, /list of strings/);

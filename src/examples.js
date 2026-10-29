@@ -259,6 +259,35 @@ const PythonExamples = {
       "docs": "https://docs.python.org/3.14/"
     },
     {
+      "id": "shiny",
+      "title": "Shiny reactive totals",
+      "label": "Shiny reactive totals",
+      "tags": [
+        "shiny",
+        "reactive",
+        "packages",
+        "display"
+      ],
+      "stdin": "3\n5\n",
+      "description": "Use Shiny reactive values to recalculate a shopping total and render a static table. Change Program input and rerun. Requires internet.",
+      "docs": "https://shiny.posit.co/py/api/core/reactive.calc.html",
+      "src": "# /// script\n# dependencies = [\"shiny==1.6.3\", \"shinychat==0.1.0\", \"starlette==0.50.0\"]\n# ///\nfrom shiny import reactive, ui\nfrom IPython.display import HTML, display\n\n# Explore Shiny's reactive engine without starting a web server.\n# Change the two quantities in Program input, then run again.\n# Full interactive Shiny apps use Shinylive: https://shinylive.io/py/\nquantity = reactive.value(0)\nprice = 12\n\n@reactive.calc\ndef total():\n    return quantity() * price\n\nprint(\"Shiny: reactive shopping totals\")\nrows = []\nfor _ in range(2):\n    count = int(input(\"Quantity: \"))\n    quantity.set(count)\n    with reactive.isolate():\n        amount = total()\n    print(f\"Total: ${amount}\")\n    rows.append(ui.tags.tr(ui.tags.td(str(count)), ui.tags.td(f\"${amount}\")))\n\n# Shiny's HTML tags escape their text; this output is a static snapshot.\ndisplay(HTML(str(ui.tags.table(\n    ui.tags.tr(ui.tags.th(\"Quantity\"), ui.tags.th(\"Total at $12 each\")),\n    *rows,\n))))\n"
+    },
+    {
+      "id": "gradio",
+      "title": "Gradio greetings",
+      "label": "Gradio greetings",
+      "tags": [
+        "gradio",
+        "input",
+        "packages"
+      ],
+      "stdin": "Ada\nGrace\n",
+      "description": "Run a Gradio Interface pipeline using Program input, without launching a web server. Change the names and rerun. Requires internet.",
+      "docs": "https://www.gradio.app/docs/gradio/interface",
+      "src": "# /// script\n# dependencies = [\"gradio==6.9.0\", \"httpcore==1.0.9\", \"starlette==0.50.0\"]\n# ///\nimport os\nos.environ[\"GRADIO_ANALYTICS_ENABLED\"] = \"False\"\nimport gradio as gr\n\n# Run a real Gradio Interface's input/function/output pipeline locally.\n# Change the names in Program input, then run again.\n# Full interactive widgets use Gradio Lite: https://www.gradio.app/playground\nasync def greet(name):\n    return f\"Hello, {name.strip() or 'Python learner'}!\"\n\ndemo = gr.Interface(\n    fn=greet,\n    inputs=gr.Textbox(label=\"Name\"),\n    outputs=gr.Textbox(label=\"Greeting\"),\n    # The simple logger avoids multiprocessing, unavailable in browsers.\n    flagging_callback=gr.SimpleCSVLogger(),\n    flagging_mode=\"never\",\n    analytics_enabled=False,\n)\n\nprint(\"Gradio: a greeting interface\")\nfor _ in range(2):\n    name = input(\"Name: \")\n    result = await demo.process_api(0, [name])\n    print(result[\"data\"][0])\n# No launch(): Python Online shows the results without a web server.\n"
+    },
+    {
       "id": "rich-display",
       "title": "Rich output",
       "label": "Rich output",

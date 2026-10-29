@@ -28,7 +28,7 @@ The site itself needs no Node build. Node is used for tests and preview maintena
 python3 -m unittest discover -s tests
 npm test
 TEST_PACKAGES=1 npm test       # also exercises real matplotlib; downloads on first use
-npm run gallery               # runs all 25 samples with pinned Pyodide; requires internet for PyPI and 256t servers
+npm run gallery               # runs all gallery samples with pinned Pyodide; requires internet for PyPI and 256t servers
 npm run offline               # regenerate after changing any shipped file
 npm run check                 # JS syntax, source/preview fingerprints, offline content hashes
 npx playwright install chromium firefox webkit
@@ -40,6 +40,8 @@ BROWSER=webkit FULL_GALLERY=1 npm run test:browser
 Browser tests start their own HTTP server, serve the exact pinned npm runtime and downloaded wheels as a local CDN mirror, and exercise real workers, timing, rich output, sharing, mobile layout, and offline reload. Run `npm run gallery` first to populate `.pyodide-cache`. CI runs Python and Node checks plus a Chromium/Firefox/WebKit matrix independently of deployment. Local test screenshots go into ignored `test-results/`.
 
 ## Programs and packages
+
+The gallery includes Shiny reactive totals and a Gradio Interface pipeline. Both use real, pinned packages and Program input; change the input and rerun. Shiny's table is a static snapshot. Full interactive web interfaces require Shinylive or Gradio Lite because rich output here does not run scripts. These two samples require internet to install their PyPI dependencies.
 
 ```python
 name = input("Name: ")
