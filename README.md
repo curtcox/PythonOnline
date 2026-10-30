@@ -99,3 +99,7 @@ Pushes to `main` deploy the repository root through `.github/workflows/deploy.ym
 This unofficial tool is not affiliated with the Python Software Foundation or Pyodide. Python is a PSF trademark; the app uses its own icon. CPython is PSF-licensed and Pyodide is MPL-2.0; both are loaded unmodified from the pinned CDN, and packages retain their own licenses.
 
 The editor and interface lineage comes from GraphvizOnline, ManimOnline, and GnuplotOnline. See [LICENSE-graphvizonline](LICENSE-graphvizonline). Ace is BSD-licensed ([notice](ace/LICENSE)); svg-pan-zoom is BSD-licensed ([notice](LICENSE-svg-pan-zoom)); the QR encoder is Project Nayuki's MIT-licensed implementation, with its notice retained in `src/qr.js`. lz-string's notice is in `vendor/LICENSE-lz-string`. `src/py/turtle.py` is an original implementation, not a copy of CPython's Tk module.
+
+## Canonical HashBin address
+
+The production app is [https://python.hashbin.page/](https://python.hashbin.page/). The GitHub Pages copy is kept for moving old drafts through **Move saved work** or **Download backup**. Transfers copy only this app's documents and public settings, keep the old copy, and never copy HashBin credentials or Python filesystem permissions. Deployment is managed by [HashBin's first-party deployment tool](https://github.com/curtcox/hashbin.org/blob/main/scripts/deploy-owned-apps.mjs).
