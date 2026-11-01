@@ -3,6 +3,8 @@
 const $ = id => document.getElementById(id), status = text => { $('status').textContent = text; };
 const storage = kind => { try { return window[kind]; } catch (_) { return undefined; } };
 const local = storage('localStorage'), session = storage('sessionStorage');
+const drafts = new PythonDrafts(local);
+let draftActive = false;
 const editor = ace.edit('editor');
 editor.setTheme('ace/theme/chrome'); editor.session.setMode('ace/mode/python');
 editor.setOptions({ enableBasicAutocompletion: true, enableLiveAutocompletion: true, showPrintMargin: false, tabSize: 4, useSoftTabs: true, fontSize: 14 });
@@ -11,7 +13,11 @@ const output = new OutputView($('output'), line => { selectTab('code'); editor.g
 let marker, applying = false, saved, clock, start, runSuppressed = false;
 function snapshot() { return { src: editor.getValue(), python: { stdin: $('stdin').value, autorun: $('autorun').checked } }; }
 function fingerprint() { return JSON.stringify(snapshot()); }
-function persist() { try { local?.setItem('pythononline:work', fingerprint()); } catch (_) { /* Private mode or quota. */ } }
+function persist() {
+  if (!draftActive) return;
+  try { drafts.save(snapshot(), false); $('draft-status').textContent = ''; }
+  catch (_) { $('draft-status').textContent = 'Could not save work in this browser. Download your program to keep it.'; }
+}
 function inputCount() {
   const count = $('stdin').value ? $('stdin').value.replace(/\n$/, '').split('\n').length : 0;
   $('input-count').textContent = count + (count === 1 ? ' line' : ' lines'); $('mobile-input-count').textContent = count || '';
@@ -19,13 +25,8 @@ function inputCount() {
 function apply(value) {
   applying = true;
   editor.setValue(value.src || '', -1); $('stdin').value = value.python?.stdin || '';
-  $('autorun').checked = value.python?.autorun !== false; inputCount(); applying = false; persist();
-}
-// Links can come from anyone; never let one silently replace work kept in this browser.
-function acceptLink(incoming) {
-  const same = (src, stdin) => src === editor.getValue() && (stdin || '') === $('stdin').value;
-  if (same(incoming.src, incoming.python?.stdin) || PythonExamples.catalog.some(sample => same(sample.src, sample.stdin))) return true;
-  return confirm('This link opens a different program. Replace the program saved in this browser?\n\nChoose Cancel to keep your current work.');
+  $('autorun').checked = value.python?.autorun !== false; inputCount(); applying = false;
+  draftActive = false;
 }
 function clearAnnotation() {
   editor.session.clearAnnotations();
@@ -124,14 +125,25 @@ $('download-text').onclick = () => PythonExport.download(output.text, 'output.tx
 $('download-svg').onclick = () => PythonExport.download(output.current.svg, 'drawing.svg', 'image/svg+xml');
 $('download-png').onclick = async () => { try { const item = output.current; const blob = item.png ? PythonExport.binary64(item.png, 'image/png') : item.svg ? await PythonExport.svgPNG(item.svg) : item.blob; PythonExport.download(blob, blob.type === 'image/jpeg' ? 'image.jpeg' : 'image.png'); } catch (error) { $('download-status').textContent = 'Image download failed: ' + error.message; } };
 const store = new HashBinStore({ clientId: document.querySelector('meta[name="hashbin-client-id"]').content, redirectUri: new URL('./', location.href).href, storage: session, transactionStorage: session });
-let linkLoad = false;
 const panel = new HashBinPanel({ store, getSnapshot: snapshot, getFingerprint: fingerprint,
-  onLoad(value, cid) { if (linkLoad && !acceptLink(value)) { history.replaceState(null, '', links().fallback); return false; } isolateIncomingProgram(); apply(value); saved = { fingerprint: fingerprint(), link: HashBinDocuments.link(location.href, cid) }; history.replaceState(null, '', saved.link); if ($('autorun').checked && !runSuppressed) run('auto'); else status('Ready — press Run (Ctrl+Enter)'); },
+  onError(error) { state('error'); status(error.message); },
+  onLoad(value, cid) {
+    scheduler.cancel(); if (client.busy) client.stop(); output.clear(); clearAnnotation(); state('idle');
+    isolateIncomingProgram(); apply(value);
+    saved = { fingerprint: fingerprint(), link: HashBinDocuments.link(location.href, cid) };
+    history.replaceState(null, '', saved.link);
+    if ($('autorun').checked && !runSuppressed) run('auto'); else status('Ready — press Run (Ctrl+Enter)');
+  },
   onSaved(cid, value, link) { saved = { fingerprint: value, link }; history.replaceState(null, '', link); $('hashbin-cid').value = cid; }
 });
 function edited() {
   if (applying) return;
-  panel.cancelLoad(); persist(); inputCount(); clearAnnotation();
+  panel.cancelLoad();
+  if (!draftActive) {
+    try { drafts.save(snapshot(), true); draftActive = true; $('draft-status').textContent = ''; }
+    catch (_) { $('draft-status').textContent = 'Could not save work in this browser. Previous drafts were kept. Download your program to keep it.'; }
+  } else persist();
+  inputCount(); clearAnnotation();
   if (saved) { saved = null; history.replaceState(null, '', links().fallback); }
   if ($('share-dialog').open) updateShare();
   scheduler.cancel(); if ($('autorun').checked) scheduler.schedule({ detect: false });
@@ -140,6 +152,30 @@ editor.session.on('change', edited); $('stdin').oninput = edited;
 $('autorun').onchange = () => { edited(); if ($('autorun').checked) run('auto'); };
 window.addEventListener('offline-before-reload', persist);
 window.addEventListener('beforeunload', persist);
+let recovery = [];
+$('resume-work').onclick = () => {
+  try { recovery = drafts.list(); }
+  catch (_) { recovery = []; $('draft-status').textContent = 'Saved work could not be read in this browser.'; }
+  $('saved-work').replaceChildren(...recovery.map((value, index) => {
+    const option = document.createElement('option'); option.value = index;
+    option.textContent = (index ? 'Previous: ' : 'Latest: ') + (value.src.split('\n').find(line => line.trim()) || '(empty program)').slice(0, 100);
+    return option;
+  }));
+  $('restore-work').disabled = !recovery.length;
+  $('saved-work').onchange(); $('draft-dialog').showModal();
+};
+$('saved-work').onchange = () => {
+  const value = recovery[$('saved-work').value];
+  $('draft-preview').textContent = value ? value.src || '(empty program)' : 'No saved work in this browser.';
+};
+$('restore-work').onclick = () => {
+  const value = recovery[$('saved-work').value]; if (!value) return;
+  panel.cancelLoad(); scheduler.cancel(); client.stop(); output.clear(); clearAnnotation();
+  isolateIncomingProgram(); saved = null; apply(value);
+  // Recovery is an explicit navigation; its URL describes the recovered document.
+  history.replaceState(null, '', links().fallback);
+  $('draft-dialog').close(); selectTab('code'); status('Saved work restored — press Run (Ctrl+Enter).');
+};
 $('offline-packages').onclick = async () => {
   if (!navigator.serviceWorker?.controller) { $('package-status').textContent = 'Wait for offline setup, then retry.'; return; }
   $('offline-packages').disabled = true; $('package-status').textContent = 'Preparing package list…';
@@ -147,36 +183,37 @@ $('offline-packages').onclick = async () => {
   channel.port1.onmessage = ({data}) => { $('package-status').textContent = data.text; if (data.done) { clearTimeout(timeout); $('offline-packages').disabled = false; channel.port1.close(); } };
   navigator.serviceWorker.controller.postMessage({ type: 'cache-packages' }, [channel.port2]);
 };
-let initial = { src: PythonExamples.catalog[0].src, python: { stdin: PythonExamples.catalog[0].stdin, autorun: true } };
-try { const restored = JSON.parse(local?.getItem('pythononline:work') || 'null'); if (restored && typeof restored.src === 'string') initial = restored; } catch (_) { /* Fresh document. */ }
-apply(initial);
-try {
-  const parsed = ShareLinks.parse(location.href, LZString.decompressFromEncodedURIComponent);
-  runSuppressed = new URL(location.href).searchParams.get('run') === '0';
-  store.retireLegacyTokens().catch(() => { /* Retried on the next load. */ });
-  if (parsed?.kind === 'publish') {
-    const published = await store.published(location.hash);
-    if (published.snapshot) apply(published.snapshot);
-    if (published.cid) { saved = { fingerprint: fingerprint(), link: HashBinDocuments.link(location.href, published.cid) }; $('hashbin-cid').value = published.cid; }
-    history.replaceState(null, '', saved ? saved.link : links().fallback);
-    $('hashbin-status').textContent = published.error || 'Saved to HashBin.';
-  }
-  else if (parsed?.kind === 'source') { if (acceptLink(parsed)) apply(parsed); else history.replaceState(null, '', links().fallback); }
-  else if (parsed?.kind === 'example') { const sample = PythonExamples.catalog.find(value => value.id === parsed.id); if (!sample) throw Error('Sample not found. Open the Sample gallery to choose a program.'); const value = { src: sample.src, python: { stdin: sample.stdin, autorun: true } }; if (acceptLink(value)) apply(value); else history.replaceState(null, '', links().fallback); }
-  if (parsed?.kind === 'cid') { $('hashbin-cid').value = parsed.cid; linkLoad = true; await panel.load(parsed.cid); linkLoad = false; }
-  else if ($('autorun').checked && !runSuppressed) run('auto');
-  else status('Ready — press Run (Ctrl+Enter)');
-} catch (error) { state('error'); status(error.message); }
-// Pasting a saved fragment into the current tab is a same-document navigation.
-window.addEventListener('hashchange', async () => {
+async function openURL() {
+  panel.cancelLoad(); scheduler.cancel(); if (client.busy) client.stop(); saved = null;
+  output.clear(); clearAnnotation();
+  // Start blank until the URL is resolved. Failed links must not display a local draft.
+  apply({ src: '', python: { stdin: '', autorun: false } }); state('idle');
+  if (PythonStoragePreference.isProgramLink(location.href)) isolateIncomingProgram();
   try {
     const parsed = ShareLinks.parse(location.href, LZString.decompressFromEncodedURIComponent);
-    if (parsed) isolateIncomingProgram();
-    runSuppressed = parsed?.run === false;
-    if (parsed?.kind === 'cid') { $('hashbin-cid').value = parsed.cid; linkLoad = true; await panel.load(parsed.cid); linkLoad = false; }
-    else if (parsed?.kind === 'source') { if (!acceptLink(parsed)) { history.replaceState(null, '', links().fallback); return; } panel.cancelLoad(); saved = null; apply(parsed); if ($('autorun').checked && !runSuppressed) run('auto'); }
-  } catch (error) { status(error.message); state('error'); }
-});
+    runSuppressed = new URL(location.href).searchParams.get('run') === '0';
+    if (parsed?.kind === 'publish') {
+      const published = await store.published(location.hash);
+      if (published.snapshot) apply(published.snapshot);
+      if (published.cid) { saved = { fingerprint: fingerprint(), link: HashBinDocuments.link(location.href, published.cid) }; $('hashbin-cid').value = published.cid; }
+      history.replaceState(null, '', saved ? saved.link : links().fallback);
+      $('hashbin-status').textContent = published.error || 'Saved to HashBin.';
+    }
+    else if (parsed?.kind === 'source') apply(parsed);
+    else if (parsed?.kind === 'example' || !parsed) {
+      const sample = parsed ? PythonExamples.catalog.find(value => value.id === parsed.id) : PythonExamples.catalog[0];
+      if (!sample) throw Error('Sample not found. Open the Sample gallery to choose a program.');
+      apply({ src: sample.src, python: { stdin: sample.stdin, autorun: true } });
+    }
+    if (parsed?.kind === 'cid') { $('hashbin-cid').value = parsed.cid; await panel.load(parsed.cid); }
+    else if ($('autorun').checked && !runSuppressed) run('auto');
+    else status('Ready — press Run (Ctrl+Enter)');
+  } catch (error) { state('error'); status(error.message); }
+}
+store.retireLegacyTokens().catch(() => { /* Retried on the next load. */ });
+// Pasting a saved fragment into the current tab uses the same URL resolution as startup.
+window.addEventListener('hashchange', openURL);
+await openURL();
 // A small public inspection surface is useful for accessibility tools and integration tests.
 globalThis.PythonOnline = { editor, client, output, snapshot, run, selectTab };
 })();

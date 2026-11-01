@@ -5,7 +5,8 @@
   "scripts": {
     "test": "node --test tests/*.test.js",
     "test:python": "python3 -m unittest discover -s tests",
-    "test:browser": "node tests/browser/all.cjs",
+    "test:browser": "node tests/browser/url-state.cjs && node tests/browser/all.cjs",
+    "test:urls": "node tests/browser/url-state.cjs",
     "test:hosted:live": "node tests/browser/live-hosted.cjs",
     "check": "node scripts/check.mjs",
     "gallery": "node scripts/render-gallery.mjs",

@@ -15,8 +15,8 @@ class PythonStoragePreference {
     this.enabled = enabled === true;
     try { this.storage?.setItem('pythononline:persistent-home', String(this.enabled)); } catch (_) { /* Keep this tab's explicit choice. */ }
   }
-  // The linked source is also kept by editor restore. Remember off so visiting
-  // the bare URL later cannot silently run that source with saved files.
+  // Remember off so local recovery cannot later run linked edits with saved files
+  // unless the user explicitly enables storage again.
   guardLink() { this.set(false); }
 }
 if (typeof module !== 'undefined') module.exports = PythonStoragePreference; else globalThis.PythonStoragePreference = PythonStoragePreference;

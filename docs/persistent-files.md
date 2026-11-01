@@ -3,8 +3,11 @@
 Open **More** and enable **Keep files between runs** to keep Python files in this
 browser after completed runs. This is off by default. Enabling it switches Python
 to the app's isolated HashBin run origin on **hashbin.app**; press Run afterward.
-The editor's source and Program input continue to use the existing local restore
-and sharing features.
+The editor's source, Program input and Auto-run settings are saved separately
+from Python files. URLs always open their linked program, and the homepage opens
+the default sample. Use **More → Resume saved work** to recover a local draft;
+recovery waits for you to press Run. Viewing a link leaves saved drafts intact,
+and editing it retains your previous draft for recovery.
 
 ```python
 from pathlib import Path

@@ -73,16 +73,8 @@ const timeout = 120000;
   // refusal to execute user scripts are asserted separately below.
   await context.addInitScript(()=>{ if (self === top) addEventListener('securitypolicyviolation',event=>globalThis.__cspViolation?.(event.violatedDirective+' '+event.blockedURI+' '+location.pathname)); });
   const page = await context.newPage(); page.setDefaultTimeout(15000);
-  // Make the app's synchronous replacement choice deterministic across page
-  // navigations. Headless Chromium can dismiss a native dialog while changing
-  // documents before Playwright can answer it. This is test-only; production
-  // still uses the browser's native confirm and the warning text is asserted.
-  await context.addInitScript(() => {
-    window.confirm = message => {
-      window.__replacementWarning = String(message);
-      return localStorage.getItem('pythononline:test:replace') !== 'cancel';
-    };
-  });
+  // Opening a program URL must never require a replacement confirmation.
+  await context.addInitScript(() => { window.confirm = () => { throw Error('Unexpected replacement confirmation'); }; });
   let phase = 'startup'; const checkpoint = text => { phase = text; console.log(text); };
   const errors = []; page.on('pageerror',error=>{ errors.push(String(error)); if (process.env.DEBUG) console.log('pageerror at', phase, String(error)); }); if (process.env.DEBUG) { page.on('console',m=>console.log('console:',m.text())); context.on('weberror',e=>console.log('weberror:',String(e.error()))); }
   async function ready() { await page.waitForFunction(()=>!!globalThis.PythonOnline); }
@@ -161,10 +153,13 @@ const timeout = 120000;
     await page.locator('#qr-open').click(); assert.equal(await page.locator('#qr-image svg').count(),1); await page.locator('[data-close="qr-dialog"]').click();
     assert.equal(await page.locator('meta[name="hashbin-client-id"]').getAttribute('content'),'app_2eabd9ad-8b90-4635-accd-7583e5241f96');
     await page.locator('#more-toggle').click(); await page.locator('#hashbin-save').click(); await page.waitForFunction(()=>document.getElementById('hashbin-confirm').textContent==='Review on HashBin' && !document.getElementById('hashbin-confirm').disabled); assert.match(await page.locator('#hashbin-message').innerText(),/approve the save on hashbin\.org/); await page.locator('#hashbin-close').click();
-    // A link that would replace work kept in this browser asks first.
+    // A saved draft cannot veto a program URL, and remains available for recovery.
+    const previousWork = await page.evaluate(()=>localStorage.getItem('pythononline:work'));
     const cidSource = Buffer.from('print("CID load")'); const inline = Buffer.from([0,0,0,0,0,cidSource.length]).toString('base64url')+cidSource.toString('base64url');
-    await page.evaluate(()=>localStorage.setItem('pythononline:test:replace','cancel')); await page.goto(base+'/#'+inline); await page.waitForFunction(()=>!!globalThis.PythonOnline); await page.waitForTimeout(300); assert.equal(await page.evaluate(()=>PythonOnline.snapshot().src),'print(input())'); assert.ok(!page.url().includes(inline)); assert.match(await page.evaluate(()=>window.__replacementWarning),/Replace the program saved in this browser/);
-    await page.evaluate(()=>localStorage.removeItem('pythononline:test:replace')); await page.goto(base+'/#'+inline); await ready(); await page.waitForFunction(()=>document.getElementById('output').textContent.includes('CID load'));
+    await page.goto(base+'/#'+inline); await ready(); await page.waitForFunction(()=>document.getElementById('output').textContent.includes('CID load'));
+    assert.equal(new URL(page.url()).hash,'#'+inline);
+    assert.equal(await page.evaluate(()=>localStorage.getItem('pythononline:work')),previousWork);
+    await page.reload(); await ready(); await page.waitForFunction(()=>document.getElementById('output').textContent.includes('CID load'));
     checkpoint('Checking matplotlib and pandas');
     // Rich figure capture, downloads, and DataFrame sandbox.
     await run('import matplotlib.pyplot as plt\nplt.plot([1,2,3])\nplt.show()'); assert.equal(await page.locator('body').getAttribute('data-state'),'done'); await page.locator('#output .figure-canvas svg').waitFor();
@@ -180,7 +175,6 @@ const timeout = 120000;
       assert.equal(await page.locator('#gallery article').count(),1);
       await page.locator('#tag').selectOption('');
     }
-    await page.evaluate(()=>localStorage.removeItem('pythononline:test:replace'));
     await page.goto(base+'/?example=microgpt'); await ready(); await finished();
     assert.equal(await page.locator('#autorun').isChecked(),true);
     assert.equal(await page.locator('body').getAttribute('data-state'),'done');
@@ -190,7 +184,7 @@ const timeout = 120000;
     assert.equal(await page.locator('body').getAttribute('data-state'),'done');
     assert.match(await page.locator('#output').innerText(),/Pretraining loss:[\s\S]*Assistant loss:[\s\S]*Assistant: python is a programming language\./);
     await page.locator('#output .figure-canvas svg').waitFor();
-    await page.evaluate(()=>localStorage.removeItem('pythononline:test:replace')); await page.goto(base+'/?example=256t-function&run=0'); await ready(); await page.evaluate(()=>PythonOnline.run()); await finished();
+    await page.goto(base+'/?example=256t-function&run=0'); await ready(); await page.evaluate(()=>PythonOnline.run()); await finished();
     assert.match(await page.locator('#output').innerText(),/roman\(2026\) = MMXXVI[\s\S]*Hello, Ada!/);
     {
       // Validate sample execution independently of the auto-run limit on slower CI hosts.
