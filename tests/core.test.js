@@ -69,6 +69,29 @@ test('malformed package metadata reports a useful error and the next run recover
   assert.equal((await run('print("recovered", flush=True)')).text, 'recovered\n');
 });
 
+test('microgpt learns in real Pyodide and trains on the supplied names', async () => {
+  const sample = require('../src/examples.js').catalog.find(sample => sample.id === 'microgpt');
+  let result = await run(sample.src, sample.stdin);
+  assert.equal(result.ok, true, result.error);
+  assert.match(result.text, /20 names, 11 tokens, 1008 parameters/);
+  const losses = [...result.text.matchAll(/mean loss ([\d.]+)/g)].map(match => Number(match[1]));
+  assert.equal(losses.length, 3);
+  assert.ok(losses.every(Number.isFinite));
+  assert.ok(losses.at(-1) < losses[0], 'training should reduce average loss');
+  assert.equal(result.text.split('\n').filter(line => line.startsWith('  ')).length, 8);
+
+  result = await run(sample.src, 'ab\nba\naab\nbba\n');
+  assert.equal(result.ok, true, result.error);
+  assert.match(result.text, /4 names, 3 tokens/);
+  const generated = result.text.split('\n').filter(line => line.startsWith('  '));
+  assert.equal(generated.length, 8);
+  assert.ok(generated.every(line => /^  (?:[ab]+|\(empty sample\))$/.test(line)));
+
+  result = await run(sample.src, '  \n\n');
+  assert.equal(result.ok, false);
+  assert.match(result.error, /Add one training name per line in Program input/);
+});
+
 test('nanochat pretrains, fine-tunes assistant tokens, and learns edited input in Pyodide', { skip: !process.env.TEST_PACKAGES }, async () => {
   const sample = require('../src/examples.js').catalog.find(sample => sample.id === 'nanochat');
   let result = await run(sample.src, sample.stdin);
