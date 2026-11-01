@@ -1,6 +1,6 @@
 # Python Online
 
-Write Python in your browser and see it run: [Python Online](https://curtcox.github.io/PythonOnline/) · [sample gallery](https://curtcox.github.io/PythonOnline/gallery.html).
+Write Python in your browser and see it run: [Python Online](https://python.hashbin.page/) · [sample gallery](https://python.hashbin.page/gallery.html).
 
 A static, build-free GitHub Pages app. CPython **3.14.2** runs as WebAssembly through **Pyodide 314.0.7**, in a dedicated Web Worker. No Python execution server, account, or API key is required.
 
@@ -86,7 +86,7 @@ HashBin documents use this envelope; bare `.py` content also loads:
 
 Choose **Save to HashBin**, then **Review on HashBin**. HashBin Publish shows the size, retention, exact price and your balance, and you approve each save on hashbin.org; this app never holds a HashBin credential. If the popup is blocked, documents up to 512 KiB go through a redirect, and source, input and Auto-run are restored on return, including after a cancelled save. The HashBin SDK v0.4.0 release is vendored in `vendor/`, so it loads offline and its bytes are checked against the release hashes. Programs run in the SDK's opaque-origin sandbox by default. **More → Keep files between runs** explicitly enables the separate hashbin.app run origin; links always start opaque. See the [persistent files guide](docs/persistent-files.html). Tokens left by the earlier OAuth flow are revoked on the next load. Source plus input is limited to 5 MiB, including the JSON envelope.
 
-**HashBin registration:** “Python Online” is registered with public client ID `app_2eabd9ad-8b90-4635-accd-7583e5241f96`, configured in the `hashbin-client-id` meta tag in `index.html`. Its return URL is **`https://curtcox.github.io/PythonOnline/`** (case-sensitive, trailing slash). If the registration changes, update the meta tag and run `npm run offline`.
+**HashBin registration:** “Python Online” is registered with public client ID `app_2eabd9ad-8b90-4635-accd-7583e5241f96`, configured in the `hashbin-client-id` meta tag in `index.html`. Its return URL is exactly **`https://python.hashbin.page/`** (including the trailing slash). If the registration changes, update the meta tag and run `npm run offline`.
 
 **Shared origin.** Every app under `curtcox.github.io` shares this origin's storage. Share, sample and CID links ask before replacing the program kept in this browser. The service worker serves only cached files that match the SHA-256 hashes in `offline-assets.js` (local files), `scripts/remote-hashes.json` (pinned Pyodide and lz-string files) or the pinned Pyodide lockfile (packages), so another app cannot poison the offline cache. A Content-Security-Policy limits scripts to this site and the pinned HashBin SDK. Python runs in a cross-origin sandbox and cannot access the editor's storage. Opt-in persistent run storage is shared between programs and can be reached by other apps on the same embedding origin; keep no secrets there.
 
@@ -108,4 +108,4 @@ The editor and interface lineage comes from GraphvizOnline, ManimOnline, and Gnu
 
 ## Canonical HashBin address
 
-The production app is [https://python.hashbin.page/](https://python.hashbin.page/). The GitHub Pages copy is kept for moving old drafts through **Move saved work** or **Download backup**. Transfers copy only this app's documents and public settings, keep the old copy, and never copy HashBin credentials or Python filesystem permissions. Deployment is managed by [HashBin's first-party deployment tool](https://github.com/curtcox/hashbin.org/blob/main/scripts/deploy-owned-apps.mjs).
+The production app is [https://python.hashbin.page/](https://python.hashbin.page/). Deployment is managed by [HashBin's first-party deployment tool](https://github.com/curtcox/hashbin.org/blob/main/scripts/deploy-owned-apps.mjs).
