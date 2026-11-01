@@ -41,6 +41,8 @@ Browser tests start their own HTTP server, serve the exact pinned npm runtime an
 
 ## Programs and packages
 
+The gallery also includes compact adaptations of Andrej Karpathy's [micrograd](https://github.com/karpathy/micrograd), [makemore](https://github.com/karpathy/makemore), and [minbpe](https://github.com/karpathy/minbpe). Fit a line with automatic differentiation, generate names from character-pair counts, or train a byte-pair tokenizer. The latter two use Program input as their training data. These examples need no model downloads or API keys; the first two use Pyodide's matplotlib package. Source links and the original MIT notices are retained in each sample.
+
 The gallery includes Shiny reactive totals and a Gradio Interface pipeline. Both use real, pinned packages and Program input; change the input and rerun. Shiny's table is a static snapshot. Full interactive web interfaces require Shinylive or Gradio Lite because rich output here does not run scripts. These two samples require internet to install their PyPI dependencies.
 
 ```python
