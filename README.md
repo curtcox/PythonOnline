@@ -43,6 +43,8 @@ Browser tests start their own HTTP server, serve the exact pinned npm runtime an
 
 The gallery also includes compact adaptations of Andrej Karpathy's [micrograd](https://github.com/karpathy/micrograd), [makemore](https://github.com/karpathy/makemore), and [minbpe](https://github.com/karpathy/minbpe). Fit a line with automatic differentiation, generate names from character-pair counts, or train a byte-pair tokenizer. The latter two use Program input as their training data. These examples need no model downloads or API keys; the first two use Pyodide's matplotlib package. Source links and the original MIT notices are retained in each sample.
 
+The [nanochat example](https://github.com/karpathy/nanochat) demonstrates an end-to-end chat training pipeline: word tokenization, text pretraining, assistant-only supervised fine-tuning, and reply sampling. Edit the `question | answer` pairs in Program input and rerun to train a fresh model and plot both training stages. This educational version uses a small NumPy feed-forward language model in place of nanochat's PyTorch transformer, with no model downloads or API keys. Its displayed losses and replies use the training data, so they demonstrate learning and memorization rather than general chat ability.
+
 The gallery includes Shiny reactive totals and a Gradio Interface pipeline. Both use real, pinned packages and Program input; change the input and rerun. Shiny's table is a static snapshot. Full interactive web interfaces require Shinylive or Gradio Lite because rich output here does not run scripts. These two samples require internet to install their PyPI dependencies.
 
 ```python

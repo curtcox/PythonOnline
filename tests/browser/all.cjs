@@ -172,14 +172,20 @@ const timeout = 120000;
     await run('import pandas as pd\ndisplay(pd.DataFrame({"value":[1,2]}))'); await page.locator('#output iframe').waitFor();
     checkpoint('Checking gallery');
     await preloadsReady(); await page.goto(base+'/gallery.html'); assert.equal(await page.locator('#gallery article').count(),require('../../src/examples.js').catalog.length); await page.locator('#search').fill('snowflake'); assert.equal(await page.locator('#gallery article').count(),1);
-    for (const id of ['shiny','gradio']) {
+    for (const id of ['shiny','gradio','nanochat']) {
       await page.locator('#search').fill(id);
       assert.equal(await page.locator('#gallery article').count(),1);
       assert.equal(await page.locator('#gallery .card').getAttribute('href'),'./?example='+id);
-      await page.locator('#search').fill(''); await page.locator('#tag').selectOption(id);
+      await page.locator('#search').fill(''); await page.locator('#tag').selectOption(id === 'nanochat' ? 'language-model' : id);
       assert.equal(await page.locator('#gallery article').count(),1);
       await page.locator('#tag').selectOption('');
     }
+    await page.evaluate(()=>localStorage.removeItem('pythononline:test:replace'));
+    await page.goto(base+'/?example=nanochat'); await ready(); await finished();
+    assert.equal(await page.locator('#autorun').isChecked(),true);
+    assert.equal(await page.locator('body').getAttribute('data-state'),'done');
+    assert.match(await page.locator('#output').innerText(),/Pretraining loss:[\s\S]*Assistant loss:[\s\S]*Assistant: python is a programming language\./);
+    await page.locator('#output .figure-canvas svg').waitFor();
     await page.evaluate(()=>localStorage.removeItem('pythononline:test:replace')); await page.goto(base+'/?example=256t-function&run=0'); await ready(); await page.evaluate(()=>PythonOnline.run()); await finished();
     assert.match(await page.locator('#output').innerText(),/roman\(2026\) = MMXXVI[\s\S]*Hello, Ada!/);
     {

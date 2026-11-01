@@ -69,6 +69,32 @@ test('malformed package metadata reports a useful error and the next run recover
   assert.equal((await run('print("recovered", flush=True)')).text, 'recovered\n');
 });
 
+test('nanochat pretrains, fine-tunes assistant tokens, and learns edited input in Pyodide', { skip: !process.env.TEST_PACKAGES }, async () => {
+  const sample = require('../src/examples.js').catalog.find(sample => sample.id === 'nanochat');
+  let result = await run(sample.src, sample.stdin);
+  assert.equal(result.ok, true, result.error);
+  assert.match(result.text, /nanochat mini: 6 pairs/);
+  for (const stage of ['Pretraining', 'Assistant']) {
+    const match = result.text.match(new RegExp(stage + ' loss: ([\\d.]+) -> ([\\d.]+)'));
+    assert.ok(match, stage + ' must report loss');
+    assert.ok(Number(match[2]) < Number(match[1]), stage + ' should learn');
+  }
+  assert.match(result.text, /Assistant: python is a programming language\./);
+  assert.match(result.items.find(item => item.type === 'figure').svg, /nanochat mini/);
+
+  result = await run(sample.src + '\nprint("Supervised tokens:", len(chat_targets))', 'ping | pong\nred | ruby\n');
+  assert.equal(result.ok, true, result.error);
+  assert.match(result.text, /nanochat mini: 2 pairs/);
+  assert.match(result.text, /User: ping\nAssistant: pong\nUser: red\nAssistant: ruby/);
+  assert.match(result.text, /Supervised tokens: 4/); // Only each answer and end token.
+
+  for (const [input, message] of [['\n', /Add question \| answer pairs/], ['missing separator', /Use one question \| answer/], ['hello | ', /Use one question \| answer/]]) {
+    result = await run(sample.src, input);
+    assert.equal(result.ok, false);
+    assert.match(result.error, message);
+  }
+});
+
 test('filesystem flush completes before done and failed saves do not report success', async () => {
   let release;
   core.home = { save: () => new Promise(resolve => { release = resolve; }) };
