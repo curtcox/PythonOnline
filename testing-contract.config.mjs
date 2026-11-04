@@ -6,7 +6,7 @@ test.setTimeout(120000);
 export default {
   ready:'body[data-ready="true"]',editor:'#editor',status:'#status',draftKey:'pythononline:work',more:'#more-toggle',
   share:'#share-open',qr:'#qr-open',tabs:['Code','Output'],example:'welcome',cachePrefix:manifest.version,offlineAsset:'src/app.css',
-  kitURL:'./vendor/fragment-kit-v0.3.2/src/index.js',
+  kitURL:'./vendor/fragment-kit-v0.3.3/src/index.js',
   isWrittenURL:href=>{const url=new URL(href);return url.searchParams.has('doc')||url.searchParams.has('compressed');},
   getSource:page=>page.evaluate(()=>PythonOnline.editor.getValue()),getDocument:page=>page.evaluate(()=>PythonOnline.snapshot()),
   edit:(page,src)=>page.evaluate(src=>PythonOnline.editor.setValue(src,-1),src),
