@@ -1,0 +1,12 @@
+{
+  "slug": "python",
+  "name": "Python Online",
+  "storagePrefix": "pythononline",
+  "canonicalOrigin": "https://python.hashbin.page/",
+  "recoveryOrigin": "https://curtcox.github.io/PythonOnline/",
+  "repo": "curtcox/PythonOnline",
+  "docs": "docs/",
+  "gallery": "gallery.html",
+  "documentType": "python",
+  "sandboxBootstrapHash": "sha256-IMEqdP+AkCKdxhM3X7mQM4pV/chykJXPvdtndD+XeH8="
+}

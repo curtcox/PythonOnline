@@ -38,7 +38,7 @@ const url = 'https://curtcox.github.io/PythonOnline/?run=0';
     assert.match(await page.locator('#home-status').innerText(), /Files saved/);
     await page.evaluate(() => PythonOnline.client.stop());
     assert.match(await run('print(open("live-pilot.txt").read())'), /Live files survived/);
-    await page.reload(); await ready();
+    await page.evaluate(()=>history.replaceState(null,'',location.pathname+'?run=0')); await page.reload(); await ready();
     assert.equal(await page.locator('#persistent-home').isChecked(), true);
     const output = await run('import js\nprint("origin", js.self.origin)\nprint(open("live-pilot.txt").read())\nprint("Editor DOM:", hasattr(js, "document"))\nprint("Editor storage:", hasattr(js, "localStorage"))');
     assert.ok(output.includes(origin), output);

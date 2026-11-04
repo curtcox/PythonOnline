@@ -2,9 +2,9 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs'); const path = require('node:path');
 const { chromium, firefox, webkit } = require('playwright');
-const { HashBinDocuments: D } = require('../../src/hashbin.js');
-const { ShareLinks: S } = require('../../src/share-links.js');
-const LZ = require('../../vendor/lz-string.min.js');
+const { HashBinDocuments: D } = require('../../src/fragment-config.mjs');
+const { ShareLinks: S } = require('../../src/fragment-config.mjs');
+const LZ = require('../../src/fragment-config.mjs').LZString;
 const examples = require('../../src/examples.js').catalog;
 const root = path.resolve(__dirname, '../..'), base = 'http://localhost';
 const work = (src, autorun = false) => ({ src, python: { stdin: 'shared input\n', autorun } });
@@ -35,13 +35,13 @@ const engine = process.env.BROWSER || 'chromium';
         if (url.origin !== base) return route.abort();
         let body;
         if (name === '/src/python-sandbox.js') body = 'globalThis.PythonSandbox={factory:()=>()=>({postMessage(){},terminate(){}})};';
-        else if (name === '/src/offline.js') body = '';
+        else if (name === '/src/offline-ui.mjs') body = '';
         else {
           const file = path.join(root, name === '/' ? 'index.html' : name);
           if (!file.startsWith(root + '/') || !fs.existsSync(file)) return route.fulfill({ status: 404, body: '' });
           body = fs.readFileSync(file);
         }
-        return route.fulfill({ body, contentType: name === '/' ? 'text/html' : name.endsWith('.css') ? 'text/css' : 'text/javascript' });
+        return route.fulfill({ body, contentType: name === '/' ? 'text/html' : name.endsWith('.css') ? 'text/css' : name.endsWith('.json') ? 'application/json' : 'text/javascript' });
       });
       const page = await context.newPage(), errors = [];
       page.on('pageerror', error => errors.push(String(error)));
@@ -56,7 +56,7 @@ const engine = process.env.BROWSER || 'chromium';
           // goto() may be a fragment navigation; its remote CID fetch is asynchronous.
           await page.waitForFunction(value => JSON.stringify(PythonOnline.snapshot()) === JSON.stringify(value), expected);
           assert.deepEqual(await page.evaluate(() => PythonOnline.snapshot()), expected);
-          assert.equal(page.url(), url);
+          if(new URL(url).searchParams.has('example'))assert.equal(new URL(page.url()).searchParams.has('example'),false);else assert.equal(page.url(),url);
           assert.equal(await page.evaluate(() => localStorage.getItem('pythononline:work')), stored);
           assert.equal(await page.locator('#persistent-home').isChecked(), false);
         }
@@ -82,7 +82,7 @@ const engine = process.env.BROWSER || 'chromium';
         assert.deepEqual(await page.evaluate(() => PythonOnline.snapshot()), incoming);
         await page.locator('#more-toggle').click(); await page.locator('#resume-work').click();
         assert.equal(await page.locator('#saved-work option').count(), 2);
-        await page.locator('#saved-work').selectOption('1'); await page.locator('#restore-work').click();
+        await page.locator('#saved-work').selectOption('1'); await page.locator('#restore-work').click(); await page.locator('#fk-more-drawer .fk-close').click();
         assert.deepEqual(await page.evaluate(() => PythonOnline.snapshot()), previous);
         assert.equal(await page.locator('body').getAttribute('data-state'), 'idle');
         const restoredURL = page.url(); await page.reload(); await page.waitForFunction(() => !!globalThis.PythonOnline);

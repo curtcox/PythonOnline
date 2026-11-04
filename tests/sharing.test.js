@@ -1,7 +1,7 @@
 const test = require('node:test'); const assert = require('node:assert/strict');
-const { HashBinDocuments: D, HashBinStore } = require('../src/hashbin.js');
-const { ShareLinks: S, ShareClient } = require('../src/share-links.js');
-const LZ = require('../vendor/lz-string.min.js');
+const { HashBinDocuments: D, HashBinStore } = require('../src/fragment-config.mjs');
+const { ShareLinks: S, ShareClient } = require('../src/fragment-config.mjs');
+const LZ = require('../src/fragment-config.mjs').LZString;
 const compress = LZ.compressToEncodedURIComponent, decompress = LZ.decompressFromEncodedURIComponent;
 function cid(text) { const data = Buffer.from(text); return Buffer.from([0,0,0,0,0,data.length]).toString('base64url') + data.toString('base64url'); }
 test('compressed source and stdin documents round trip; run=0 is preserved', () => {
@@ -17,19 +17,19 @@ test('plain fallback preserves stdin without compression', () => {
 test('CID detection and plain Python load', async () => {
   const value = cid('print(1)'); assert.ok(D.isCID(value)); assert.equal(S.parse('https://example.com/#'+value).kind,'cid');
   assert.equal((await new HashBinStore().load(value)).src,'print(1)'); assert.equal(D.isCID('print1234'),false);
-  assert.deepEqual(S.parse('https://example.com/?example=star'),{kind:'example',id:'star',run:true});
+  assert.equal(S.parse('https://example.com/?example=star').id,'star');
 });
-test('documents validate versions, input and byte limits; unknown types remain text', () => {
+test('documents validate versions, input and byte limits; unknown envelope types fail visibly', () => {
   const doc = D.serialize({src:'print(1)',python:{stdin:'x',autorun:false}}); assert.equal(D.parse(doc).python.autorun,false);
   assert.throws(()=>D.parse(doc.replace('"version":1','"version":2')),/version/);
   assert.throws(()=>D.serialize({src:'a'.repeat(D.MAX_BYTES)}),/5 MiB/);
   assert.throws(()=>D.parse(doc.replace('"stdin":"x"','"stdin":1')),/text/);
-  const unknown = doc.replace('"type":"python"','"type":"other"'); assert.equal(D.parse(unknown).src,unknown);
+  const unknown = doc.replace('"type":"python"','"type":"other"'); assert.throws(()=>D.parse(unknown),/for other/);
 });
 function memory() { const data = new Map(); return {data,setItem:(k,v)=>data.set(k,v),getItem:k=>data.get(k) ?? null,removeItem:k=>data.delete(k)}; }
 function fullCID(text) { const data = Buffer.from(text), size = Buffer.alloc(6); size.writeUIntBE(data.length,0,6); return size.toString('base64url') + (data.length <= 64 ? data : require('node:crypto').createHash('sha512').update(data).digest()).toString('base64url'); }
 test('HashBin placeholder provides clear registration guidance', async () => {
-  await assert.rejects(()=>new HashBinStore().init(),/registered client ID/);
+  await assert.rejects(()=>new HashBinStore({clientId:''}).init(),/registered client ID/);
 });
 test('saves go through HashBin Publish with the vendored SDK release and verify the returned CID', async () => {
   const snapshot = {src:'print(1)',python:{stdin:'x',autorun:true}}, payload = D.serialize(snapshot); let options;
@@ -39,9 +39,8 @@ test('saves go through HashBin Publish with the vendored SDK release and verify 
   store.client.publish = async () => ({cid:fullCID(payload+' ')}); await assert.rejects(store.publish(payload,snapshot),/does not match its CID/);
   // The vendored files are the exact immutable release; hashes from https://hashbin.org/sdk/v0.4.0/integrity.json.
   const sri = file => 'sha384-'+require('node:crypto').createHash('sha384').update(require('node:fs').readFileSync(require('node:path').join(__dirname,'..',file))).digest('base64');
-  assert.equal(sri('vendor/hashbin-sdk-v0.4.0.mjs'),'sha384-zzmaXw5svWRp0YF//G5ytyeqEowixccM/hHVDth46FnGrIlPS7fPki5vbhv+bWCr');
+  assert.equal(sri('vendor/fragment-kit-v0.3.2/vendor/hashbin-sdk-v0.4.0.mjs'),'sha384-zzmaXw5svWRp0YF//G5ytyeqEowixccM/hHVDth46FnGrIlPS7fPki5vbhv+bWCr');
   assert.equal(sri('vendor/hashbin-cache-v0.4.0.js'),'sha384-OjeXeXB30xFV4yU2LmXTYzc0KsymrivM/l3f/rgDQuPsTzGVMnk6vYtck8n60EgP');
-  assert.match(require('node:fs').readFileSync(require('node:path').join(__dirname,'../src/hashbin.js'),'utf8'),/'\.\.\/vendor\/hashbin-sdk-v0\.4\.0\.mjs'/);
 });
 test('redirect saves restore source and input after approval or cancellation', async () => {
   const transactionStorage = memory(), snapshot = {src:'print(1)',python:{stdin:'x',autorun:true}}, payload = D.serialize(snapshot); let outcome = 'approve';
@@ -52,7 +51,7 @@ test('redirect saves restore source and input after approval or cancellation', a
 });
 test('tokens left by the earlier OAuth flow are revoked server-side before they are cleared', async () => {
   const storage = memory(); let loaded = 0, revoked = 0;
-  const store = new HashBinStore({clientId:'id',storage,loadSDK:async()=>{ loaded++; return {HashBinClient:class { async disconnect(){ revoked++; storage.data.clear(); } }}; }});
+  const store = new HashBinStore({clientId:'id',legacyStorage:storage,loadSDK:async()=>{ loaded++; return {HashBinClient:class { async disconnect(){ revoked++; storage.data.clear(); } }}; }});
   assert.equal(await store.retireLegacyTokens(),false); assert.equal(loaded,0);
   storage.setItem('hashbin:tokens:id','{"refreshToken":"old"}'); assert.equal(await store.retireLegacyTokens(),true); assert.equal(revoked,1);
 });

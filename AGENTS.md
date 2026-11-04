@@ -1,6 +1,6 @@
 # Python Online
 
-Static GitHub Pages Python IDE. No build step or backend. Work directly on `main` and use the existing deployment workflow. Do not add server-side Python execution or third-party API keys.
+Static GitHub Pages Python IDE. No build step or backend. Keep the Fragment Kit migration on its branch and PR; use the shared gated deployment workflow. Do not add server-side Python execution or third-party API keys.
 
 ## Contracts
 
@@ -9,16 +9,16 @@ Static GitHub Pages Python IDE. No build step or backend. Work directly on `main
 - Text is inert textContent/text nodes. Rich HTML/Markdown uses an iframe with an empty sandbox attribute, no scripts, no same-origin permission, and a restrictive CSP. Arbitrary SVG is an image; only our validated turtle/QR code creates inline SVG.
 - Auto-run debounce is 750 ms; its 5-second execution limit starts after dependencies. Manual execution has no hard limit and always offers Stop. Busy superseded workers must be terminated; ignore stale worker events.
 - Reset `__main__`, argv, cwd, stdin, turtle and figures each run. Clear the Python bridge module cache every run so output never targets a prior run. Keep all Python environment code in real importable `src/py/*.py` files.
-- `input()` consumes and echoes Program input lines. Source, stdin, and Auto-run settings must survive sharing, local restore, and HashBin Publish redirects (approved or cancelled). Saves use the SDK's `publish()`, called synchronously from the click; never reintroduce OAuth tokens in this shared-origin page. The SDK is the immutable v0.4.0 release vendored in `vendor/` (`hashbin-sdk-v0.4.0.mjs`, and `hashbin-cache-v0.4.0.js` for the service worker); `tests/sharing.test.js` checks both against the release's SRI hashes. Upgrade by vendoring a newer release, never by editing these files. Links never silently replace the stored program. The service worker serves only hash-verified bytes; pinned CDN hashes are in `scripts/remote-hashes.json`. Keep the Content-Security-Policy in `index.html` and `gallery.html` in step with new hosts.
+- `input()` consumes and echoes Program input lines. Source, stdin, and Auto-run settings must survive sharing, local restore, and HashBin Publish redirects (approved or cancelled). Saves use the SDK's `publish()`, called synchronously from the click; never reintroduce OAuth tokens in this shared-origin page. The SDK is the immutable v0.4.0 release in `vendor/fragment-kit-v0.3.2/vendor/hashbin-sdk-v0.4.0.mjs`; the app keeps `vendor/hashbin-cache-v0.4.0.js` for package integrity; `tests/sharing.test.js` checks both against the release's SRI hashes. Upgrade by vendoring a newer release, never by editing these files. Links never silently replace the stored program. The service worker serves only hash-verified bytes; pinned CDN hashes are in `scripts/remote-hashes.json`. Keep the Content-Security-Policy in `index.html` and `gallery.html` in step with new hosts.
 - HashBin envelope: `format: hashbin-diagram`, `version: 1`, `type: python`, `src`, `python: {stdin, autorun}`. Limit 5 MiB. Registered public client ID is `app_2eabd9ad-8b90-4635-accd-7583e5241f96`, configured in `index.html`; do not invent a replacement. Return URL is exactly `https://python.hashbin.page/`.
-- Plain scripts expose globals in browsers and CommonJS exports in Node. Avoid a bundler. Retain vendor and lineage licenses.
+- App engine scripts expose globals in browsers and CommonJS exports in Node; shared orchestration uses native ES modules. Avoid a bundler. Retain vendor and lineage licenses.
 - Service worker caches only project scope and pinned runtime/package URLs; prefix caches with `pythononline-`. Installs are atomic and updates preserve editor work.
 - Mobile at <=760 px width or <=500 px height uses Output/Code/Input tabs, More controls, and >=40 px action buttons. Input text is >=16 px on mobile.
 
 ## Maintenance and validation
 
 1. Edit samples in both `src/examples.js` and `examples/*.py`.
-2. `npm run gallery` executes real Pyodide and regenerates previews/fingerprints. Internet is needed for gallery packages, its PyPI sample, and saved programs the 256t samples fetch. `src/py/t256.py` resolves 256t strings; keep `examples/saved/`, `examples/256t-save.py`, and `tests/fixtures/256t/` in sync (the Python tests check it).
+2. `npm run gallery:python` executes real Pyodide and regenerates previews/fingerprints. Internet is needed for gallery packages, its PyPI sample, and saved programs the 256t samples fetch. `src/py/t256.py` resolves 256t strings; keep `examples/saved/`, `examples/256t-save.py`, and `tests/fixtures/256t/` in sync (the Python tests check it).
 3. Run `python3 -m unittest discover -s tests`, `TEST_PACKAGES=1 npm test`, and relevant browser coverage.
 4. After editing `docs/*.md`, run `npm run docs` to regenerate the formatted `docs/*.html` pages the site links to. After changing shipped assets, run `npm run offline`, then `npm run check`.
 5. Browser tests: `npm run test:browser`; use `BROWSER=firefox` or `BROWSER=webkit`; `FULL_GALLERY=1` tests every gallery URL. Install Playwright browsers first. Node package wheels are cached in ignored `.pyodide-cache`.
@@ -34,3 +34,7 @@ Use the registered **Claude Code publisher** client for HashBin saves made by an
 - Keep tokens out of the repo and output, and delete them afterwards. After publishing, check that `https://256t.us/<cid>` matches `tests/fixtures/256t/<cid>`. The same documents are mirrored in the 256t.org repository (`examples/python-online-*.json`, `cids/`; its R2 upload workflow is dispatched manually).
 
 Deployment and tests remain separate workflows. Do not claim a deployment succeeded without checking the workflow or live page. HashBin registration and switching Pages to GitHub Actions are account setup actions; report them if still needed.
+
+## Fragment Kit
+
+Shared contracts live in `vendor/fragment-kit-v0.3.2/docs/contracts.md`. Keep runtime bytes immutable and verify the published pin. Use `fragment-kit.config.json` and the production Python document adapter. Keep the legacy writer until all consumers have v1 readers. Python isolation, persistence, document validation and t256 remain app-owned. Keep all existing `pythononline:` keys readable; do not rewrite legacy history. `src/offline-extras.js` owns package policy and read-only page updates, while the kit owns atomic app installation/repair. Gallery packages have a separate `pythononline-packages-v1` cache. Generate shared covers after real SVG previews, regenerate docs after Markdown edits and offline hashes after any shipped changes. Run `npm test`, `npm run check`, `npm run test:contracts` and the real browser suite; CI runs Chromium, Firefox and WebKit plus mobile contracts. Report only actual browser runs.
