@@ -112,4 +112,4 @@ The editor and interface lineage comes from GraphvizOnline, ManimOnline, and Gnu
 
 The production app is [https://python.hashbin.page/](https://python.hashbin.page/). Deployment is managed by [HashBin's first-party deployment tool](https://github.com/curtcox/hashbin.org/blob/main/scripts/deploy-owned-apps.mjs).
 
-Shared application tools now come from the pinned Fragment Kit v0.3.2. See the [app guide](docs/index.html) and [migration details](docs/fragment-kit-migration.html). Runtime pins stay exact; shared workflows use the immutable `v1` tag.
+Shared application tools now come from the pinned Fragment Kit v0.3.2. See the [app guide](docs/index.html) and [migration details](docs/fragment-kit-migration.html). Runtime pins stay exact; shared workflows use the immutable `v2` tag.

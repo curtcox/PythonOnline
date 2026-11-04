@@ -2,7 +2,7 @@
 (function (self) { self.OfflineAssets = {
   "pyodide": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/",
   "prefix": "pythononline",
-  "version": "pythononline-6cdb3f561cd86c7d",
+  "version": "pythononline-475c02ab4a8d4c9f",
   "assets": [
     "LICENSE-graphvizonline",
     "LICENSE-svg-pan-zoom",
@@ -213,8 +213,8 @@
     "ace/theme-chrome.js": "322dbf67070e2868e000d5ed236f8fb19505a6fd7bed1f308eb1e96bcff172a0",
     "docs/256t-calls.html": "5aadf0ae8a575a2d9c15e4d9b7bde3d839085d05fbdf5fcb868c1f4d4e7d6f86",
     "docs/256t-calls.md": "d98695577f684e6b76f0ab0be4e37ff1ab5ddaecc7854001e94cb42f8a49f6b3",
-    "docs/fragment-kit-migration.html": "9754d5275e616d8cbc68ab22d5cdca0c2a8b19e75c7e40f032cbeb65600a8ad6",
-    "docs/fragment-kit-migration.md": "7abd86e88f5fa9bc3d37b1be04b35ddb3e418be0de495b6d22e6f0689158b338",
+    "docs/fragment-kit-migration.html": "7003bf262164a0ffe025a49d6fe7fea9f3360eb2c4e9ea83f7602d2877a601d1",
+    "docs/fragment-kit-migration.md": "09e1a01e56b6798979c160daee2bddc2f97220e98c292637463b895eb67bc30e",
     "docs/index.html": "741e00c47260df8cc9961389768a97b066dae30435aa639186b11c5e93d23ad4",
     "docs/index.md": "b8ab5f9eb6996a9294930d047b628ea38a2d67109a3a077fa60a7fe225d0a39f",
     "docs/persistent-files.html": "06c50e2e0bdf770ac4427003555ea799811fc56a6e21e603ba5727ad0a690c61",
@@ -330,7 +330,7 @@
     "index.html": "bd77e990df87e95c31b6dc83141b12ea5e92862bebe8ac34cda75c2c3add7328",
     "manifest.webmanifest": "7450d2930f5d6382b695136dcf87d4f9c0d89d8334687e345872f9cd6d71cbc3",
     "service-worker.js": "d086e4c5cd00a46d9da8e0a8b6fd946cf3b37e333a6f987b01419a97d8d96273",
-    "src/app.css": "4e04a41d02939d9c997c1a397c508bdd00b45cf60f7755d143f1c4a74288cce9",
+    "src/app.css": "953346048164c75ce94ef0fb56c4e5e051588daad2f147f7728b21e387bd1d1f",
     "src/app.js": "d7262fd036b6e094f9748f2dda913d7c46e985da7df9da971122c5373af578e8",
     "src/docs.css": "ff5bfa82630fcf392717db29cbaf49a9b2583b79f23415e7cf973b883b9efe95",
     "src/domain-migration.js": "0c835603110e7f7bb9d82c95aa1527802d0ece4ea1c33823d58194c8778de0ef",

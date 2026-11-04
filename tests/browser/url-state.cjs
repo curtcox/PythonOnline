@@ -90,7 +90,7 @@ const engine = process.env.BROWSER || 'chromium';
         assert.equal(page.url(), restoredURL);
         await page.setViewportSize({ width: 375, height: 812 });
         await page.locator('#more-toggle').click(); await page.locator('#resume-work').click();
-        assert.ok((await page.locator('#restore-work').boundingBox()).height >= 40);
+        assert.ok(Math.round((await page.locator('#restore-work').boundingBox()).height) >= 44);
         assert.equal(await page.locator('#saved-work').evaluate(element => getComputedStyle(element).fontSize), '16px');
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
         fs.mkdirSync(path.join(root, 'test-results'), { recursive: true });

@@ -7,14 +7,14 @@ permissions:
   contents: read
 jobs:
   test:
-    uses: curtcox/Tools-for-pages-with-state-in-URL-fragments/.github/workflows/test.yml@v1
+    uses: curtcox/Tools-for-pages-with-state-in-URL-fragments/.github/workflows/test.yml@v2
     with:
-      pre-test: python3 -m unittest discover -s tests
+      pre-test: python3 -m unittest discover -s tests && TEST_PACKAGES=1 npm test
       kit-path: vendor/fragment-kit-v0.3.2
       contract-config: testing-contract.config.mjs
       server-command: PORT=8000 node tests/browser/server.cjs
       browser-command: FULL_GALLERY=1 npm run test:browser
   kit:
-    uses: curtcox/Tools-for-pages-with-state-in-URL-fragments/.github/workflows/kit-check.yml@v1
+    uses: curtcox/Tools-for-pages-with-state-in-URL-fragments/.github/workflows/kit-check.yml@v2
     with:
       kit-path: vendor/fragment-kit-v0.3.2

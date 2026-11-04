@@ -2,7 +2,7 @@
 
 The app pins the published Fragment Kit v0.3.2 under `vendor/fragment-kit-v0.3.2`. Its production adapter is `src/fragment-config.mjs` and its single app config is `fragment-kit.config.json`. The registered public client ID stays in the existing HTML meta tag.
 
-URL readers, CID verification, Publish, QR generation and scanning, sharing, drafts, scheduler, offline core, shell, tabs and gallery use the pinned kit. Legacy writers remain enabled until the fleet has v1 readers. The kit's immutable `v1` workflows are independent of the exact runtime version.
+URL readers, CID verification, Publish, QR generation and scanning, sharing, drafts, scheduler, offline core, shell, tabs and gallery use the pinned kit. Legacy writers remain enabled until the fleet has v1 readers. The kit's immutable `v2` workflows are independent of the exact runtime version.
 
 Python execution, its opaque and hosted sandbox, the trusted Python helpers, turtle output and t256 remain app-owned. Execution imports the same byte-pinned SDK v0.4.0 as Publish. Unused SDK/cache v0.3.0 and the duplicate SDK v0.4.0 were removed. The app retains the pinned v0.4.0 cache verifier for its package lockfile policy.
 
