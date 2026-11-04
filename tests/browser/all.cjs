@@ -205,7 +205,7 @@ const timeout = 120000;
     checkpoint('Checking offline worker reload'); await preloadsReady(); await context.setOffline(true); await page.reload(); await ready(); await run('print("offline success")'); assert.match(await page.locator('#output').innerText(),/offline success/); await context.setOffline(false);
     // The gallery reads a new deploy from the network while the editor keeps its cached version.
     const gallery = await context.newPage(); fixture.freshLabel = 'Hello, deployed Python';
-    await gallery.goto(base+'/gallery.html'); assert.equal(await gallery.locator('.fk-gallery-card h2').first().textContent(),freshLabel);
+    await gallery.goto(base+'/gallery.html'); assert.equal(await gallery.locator('.fk-gallery-card h2').first().textContent(),'Hello, deployed Python');
     // Offline it falls back to the cache. Firefox may answer from its HTTP cache first instead.
     await preloadsReady(); await context.setOffline(true); await gallery.reload(); assert.match(await gallery.locator('.fk-gallery-card h2').first().textContent(),engine === 'firefox' ? /^Hello, (?:deployed )?Python$/ : /^Hello, Python$/);
     await context.setOffline(false); await gallery.close(); fixture.freshLabel = '';
