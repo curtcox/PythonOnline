@@ -14,7 +14,13 @@ export const legacyWriter=(doc,{url,run,view,compress,documents})=>{
 export const urlState=kit.createUrlState({config,type,legacyWriter});
 export const HashBinDocuments={...urlState.documents,MAX_BYTES:config.maxBytes,link:urlState.link,
   ...Object.fromEntries(['bytes','encode64','decode64','isCID','cidLength','verify'].map(key=>[key,kit[key]])),cid:value=>kit.cid(value,config.allowedHosts)};
-export class HashBinStore extends kit.HashBinStore {constructor(options={}){super({config,type,...options});}}
+// Read pre-kit Publish returns only for this public client; write every new transaction under the app prefix.
+export function publishTransactions(storage,clientId=config.hashbinClientId){
+ if(!storage)return undefined;
+ const current=kit.createStorage({prefix:config.storagePrefix,storage}),owned=key=>key.startsWith('hashbin:publish:'+clientId+':');
+ return {getItem(key){const value=current.getItem(key);if(value!=null||!owned(key))return value;try{return storage.getItem(key);}catch{return null;}},setItem:(key,value)=>current.setItem(key,value),removeItem(key){current.removeItem(key);if(owned(key))try{storage.removeItem(key);}catch{}}};
+}
+export class HashBinStore extends kit.HashBinStore {constructor(options={}){let storage;try{storage=globalThis.sessionStorage;}catch{}super({config,type,transactionStorage:publishTransactions(storage,options.clientId??config.hashbinClientId),...options});}}
 export const ShareLinks={build:({url,run,view,...doc})=>urlState.build(doc,{url,run,view}),parse:href=>{const intent=urlState.parse(href);return intent.kind==='none'?null:{...intent,...intent.doc};}};
 export const LZString={compressToEncodedURIComponent:kit.compress,decompressFromEncodedURIComponent:kit.decompress};
 export {ShareClient} from '../vendor/fragment-kit-v0.3.2/src/index.js';

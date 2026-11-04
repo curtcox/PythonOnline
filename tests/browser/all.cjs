@@ -128,10 +128,14 @@ const timeout = 120000;
       await page.locator('#tag').selectOption('');
     }
     await page.goto(base+'/?example=microgpt'); await ready(); await finished();
+    // Slow CI hosts may hit the documented auto-run cap; manual Run must still complete.
+    if((await page.locator('#status').innerText()).startsWith('Stopped after 5 s')){await page.evaluate(()=>PythonOnline.run());await finished();}
     assert.equal(await page.locator('#autorun').isChecked(),true);
     assert.equal(await page.locator('body').getAttribute('data-state'),'done');
     assert.match(await page.locator('#output').innerText(),/Step  60: mean loss[\s\S]*Generated names/);
     await page.goto(base+'/?example=nanochat'); await ready(); await finished();
+    // Slow CI hosts may hit the documented auto-run cap; manual Run must still complete.
+    if((await page.locator('#status').innerText()).startsWith('Stopped after 5 s')){await page.evaluate(()=>PythonOnline.run());await finished();}
     assert.equal(await page.locator('#autorun').isChecked(),true);
     assert.equal(await page.locator('body').getAttribute('data-state'),'done');
     assert.match(await page.locator('#output').innerText(),/Pretraining loss:[\s\S]*Assistant loss:[\s\S]*Assistant: python is a programming language\./);

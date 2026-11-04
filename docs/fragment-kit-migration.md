@@ -13,3 +13,5 @@ Optional packages live in `pythononline-packages-v1`, outside application readin
 `npm run gallery:python` executes the real engine to update original SVG previews. With the site served, `npm run gallery` exports shared fingerprinted PNG covers. `npm run offline` regenerates all shipped hashes. The deploy remains gated by unit, corpus, shared contracts and actual-engine tests in three browsers.
 
 This document describes the migration source. Current remote rollout and deployment evidence is tracked in Fragment Kit's `todo/rollout-status.md`.
+
+Publish returns already in flight before deployment remain readable for this app’s registered public client. New transactions are app-prefixed; unrelated clients and old credential keys are never read by the compatibility adapter. Consuming a callback removes its legacy transaction.

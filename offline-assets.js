@@ -2,7 +2,7 @@
 (function (self) { self.OfflineAssets = {
   "pyodide": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/",
   "prefix": "pythononline",
-  "version": "pythononline-475c02ab4a8d4c9f",
+  "version": "pythononline-330ea81eb7c58e08",
   "assets": [
     "LICENSE-graphvizonline",
     "LICENSE-svg-pan-zoom",
@@ -213,8 +213,8 @@
     "ace/theme-chrome.js": "322dbf67070e2868e000d5ed236f8fb19505a6fd7bed1f308eb1e96bcff172a0",
     "docs/256t-calls.html": "5aadf0ae8a575a2d9c15e4d9b7bde3d839085d05fbdf5fcb868c1f4d4e7d6f86",
     "docs/256t-calls.md": "d98695577f684e6b76f0ab0be4e37ff1ab5ddaecc7854001e94cb42f8a49f6b3",
-    "docs/fragment-kit-migration.html": "7003bf262164a0ffe025a49d6fe7fea9f3360eb2c4e9ea83f7602d2877a601d1",
-    "docs/fragment-kit-migration.md": "09e1a01e56b6798979c160daee2bddc2f97220e98c292637463b895eb67bc30e",
+    "docs/fragment-kit-migration.html": "929183292a4b134f9eb893a1b65d203cfbdd1e28fd132c91b18db62949c2dae1",
+    "docs/fragment-kit-migration.md": "9d86b671ace55c44d168db87ccd4e0df4401cbf2eb5041f1672fe1c86cc71d32",
     "docs/index.html": "741e00c47260df8cc9961389768a97b066dae30435aa639186b11c5e93d23ad4",
     "docs/index.md": "b8ab5f9eb6996a9294930d047b628ea38a2d67109a3a077fa60a7fe225d0a39f",
     "docs/persistent-files.html": "06c50e2e0bdf770ac4427003555ea799811fc56a6e21e603ba5727ad0a690c61",
@@ -337,7 +337,7 @@
     "src/editor-drafts.mjs": "1815b93cfa52ae3af125c065bb9eaca463e81c1e1f45afc0d27207328e507f00",
     "src/examples.js": "575cd776da2c23887b6428d31f8385586b0497b099b9d3dffc9cbdd381d23663",
     "src/export.js": "145e32b55fae06750eff2898cd25a079956771148768a9c2bc93eac2932f387e",
-    "src/fragment-config.mjs": "53e243f39e227da7f95fe3d29d247c7a0ed5bfc95bd137e2b08930b43dfaa06c",
+    "src/fragment-config.mjs": "d98649d853a3240d8b0c08d6de52557d7c9b5ef438e367ad1e7bdfe0ddf74fa1",
     "src/gallery.css": "a19f37a00afa5e1a821879edf3c78a7891788994cd1b7f8a95a96bc580238fe3",
     "src/gallery.js": "aaea8792cbad65b56b40315e8fa8d586b60f6b79a7f54be4dbcf51b5e7511160",
     "src/offline-extras.js": "0914e9df038b091be7b5276512a658bedefc3827807029f84cd33db0ce2c79cc",

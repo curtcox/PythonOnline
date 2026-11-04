@@ -98,6 +98,14 @@ const engine = process.env.BROWSER || 'chromium';
       }
       assert.deepEqual(errors, []); await context.close();
     }
+    // A Publish approval already in flight before the migration must restore all state.
+    for(const cancelled of [false,true]){
+      const context=await browser.newContext({serviceWorkers:'block'});
+      await context.route('http://localhost/**',route=>{const url=new URL(route.request().url()),name=url.pathname;const file=path.join(root,name==='/'?'index.html':name);if(!file.startsWith(root+'/')||!fs.existsSync(file))return route.fulfill({status:404,body:''});let body=fs.readFileSync(file);if(name==='/src/python-sandbox.js')body='globalThis.PythonSandbox={factory:()=>()=>({postMessage(){},terminate(){}})};';if(name==='/src/offline-ui.mjs')body='';return route.fulfill({body,contentType:name==='/'?'text/html':name.endsWith('.json')?'application/json':name.endsWith('.css')?'text/css':'text/javascript'});});
+      const snapshot=work('print("pre-kit return")'),payload=D.serialize(snapshot),clientId='app_2eabd9ad-8b90-4635-accd-7583e5241f96';
+      await context.addInitScript(({clientId,payload,snapshot})=>sessionStorage.setItem('hashbin:publish:'+clientId+':before-kit',JSON.stringify({bytes:btoa(unescape(encodeURIComponent(payload))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),clientState:{snapshot},createdAt:Date.now()})),{clientId,payload,snapshot});
+      const page=await context.newPage();await page.goto(base+'/?run=0#hashbin_publish=before-kit&'+(cancelled?'error=access_denied':'cid='+cid(payload)));await page.waitForFunction(()=>!!globalThis.PythonOnline);assert.deepEqual(await page.evaluate(()=>PythonOnline.snapshot()),snapshot);assert.equal(await page.evaluate(key=>sessionStorage.getItem(key),'hashbin:publish:'+clientId+':before-kit'),null);if(cancelled)assert.match(await page.locator('#hashbin-status').innerText(),/cancelled/);await context.close();
+    }
     console.log(engine + ': program URLs are independent of saved drafts; recovery passed');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
