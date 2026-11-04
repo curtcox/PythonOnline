@@ -17,3 +17,6 @@ execFileSync(process.execPath, [new URL('scripts/render-gallery.mjs', root).path
 execFileSync(process.execPath, [new URL('scripts/render-docs.mjs', root).pathname, '--check'], { stdio: 'inherit' });
 execFileSync(process.execPath, [new URL('scripts/update-offline.mjs', root).pathname, '--check'], { stdio: 'inherit' });
 console.log('Syntax, gallery, docs and offline consistency checks passed.');
+
+execFileSync(process.execPath,['vendor/fragment-kit-v0.3.2/tools/check.mjs','--config','fragment-kit.config.json'],{stdio:'inherit'});
+execFileSync(process.execPath,['scripts/render-python-previews.mjs','--check'],{stdio:'inherit'});

@@ -1,0 +1,172 @@
+{
+  "dependencies": {
+    "src/examples.js": "575cd776da2c23887b6428d31f8385586b0497b099b9d3dffc9cbdd381d23663",
+    "src/python-core.js": "e6410b2432f41d43007b9f0445babf2e7f5eef167eb99c45a2b9ce0e9557f136",
+    "src/py/runtime.py": "2804fa11ad5784592531c4253a33c93f1016d5c8c0c732788c3fd173bd7d05bd",
+    "src/turtle-player.js": "9027d24a24034b12ac3350ecd113141725abc939a213ed6a755a01825cc9d933",
+    "scripts/render-python-previews.mjs": "db89e34779692862634e9e993a6209cab1a4452a4dbc079e8c142c06f067cddd",
+    "gallery/previews/welcome.svg": "107734cb415994bad52156e9639d498be2948a12418ee8e9119efcc727295870",
+    "gallery/previews/input-numbers.svg": "89354f9f721aa9fdb88faf061126d578d756120372e18dfd920c8d90487f42f0",
+    "gallery/previews/fizzbuzz.svg": "fc726aa38931e8bec7ac3a175f572ff0a22c0d2e6a375f272f112782b3688791",
+    "gallery/previews/hanoi.svg": "8cd4f716973beafa6aade759c007a6956ea7cdfdc50ca9b55a1357e2883db649",
+    "gallery/previews/dataclasses.svg": "26406d7fa0fdc0fd07f98c8e0e3635bbb0326aa67e6abdef05e2d7ff06682618",
+    "gallery/previews/generators.svg": "d55308c223386d4d37ce90b52d4b77fd5359e566a28a6ca8aa7d87d7662aa625",
+    "gallery/previews/word-count.svg": "c3bc013d01b2800dcb3647011fcd2cf827bde2935070b86a9fb82f94c5f1247f",
+    "gallery/previews/regex-json.svg": "b5374042ba64299cf66aa210b8b2a7a28d976e22a967eb14ebfeeccf131a67bd",
+    "gallery/previews/asyncio.svg": "8e5fd1b907ae3ce85fd88835f65a12ce89451df6dccaf99d61e87474cf3ef968",
+    "gallery/previews/life.svg": "3f9d2df7425517899a194927af0583428031ce1641bab1e274997169b2dff5e0",
+    "gallery/previews/spiral.svg": "e503154f8193d31d07a478284ce2e03ed02f518c2fe3ae3d206395d598171b49",
+    "gallery/previews/star.svg": "e7f41403d3f4327369d99a2e744ec1f3a1d482822a3f12d2cd6d242755c51284",
+    "gallery/previews/tree.svg": "7b70ff01639db3bde6f10836d8aecb3145d28140659a2db814da44c978c21ff9",
+    "gallery/previews/koch.svg": "ec163aa5c4500005589afa17a28275d542d2e2aa8898084e2eba242ccb5f3053",
+    "gallery/previews/color-wheel.svg": "b58af65c0ec0147e4748cdf8e36789d1cd8ccaf673fd6cd68ff4e3a482949a9c",
+    "gallery/previews/waves.svg": "760f2d8d757e0dfee633ca9087474481f441e256238182d24d4521ae95096aa0",
+    "gallery/previews/histogram.svg": "5299c4559ea8ed7b4634e112d4828428709fd4b9345302cd07b6e6219ae81d8e",
+    "gallery/previews/dataframe.svg": "411ac9fc66ab8c51e3014943874b67a25af12dd35ab558f233177d314f2ae755",
+    "gallery/previews/image.svg": "97e37c5e2933fd2e1c595238f91bf48293f75f99a6dde459302d48b5ecbf6280",
+    "gallery/previews/micrograd.svg": "b075d7aa52f386b787ac97179abaeff1c107c8eb076a0e65290122f7d0e5f377",
+    "gallery/previews/makemore.svg": "841d4a79925e1f375a3a80a186d2bac5e045e69e7024117bc962a6bc194d41fc",
+    "gallery/previews/microgpt.svg": "0892ac1d264e502fde2c33b74cde675886fd69a0c9f169efaac2cd46d03af6be",
+    "gallery/previews/nanochat.svg": "a24cf542ffb76181c6bbd30e77e9284471535765a9fd86a6cba8e9444e5a00f2",
+    "gallery/previews/minbpe.svg": "67d9805d8fb15f4b772faa68504ec5b7c4ad371f469258fc47ad87a065cf2277",
+    "gallery/previews/packages.svg": "c52ba47564a211751e9575a512bbed8ec6f994853e37f29e8eb5df12836938b4",
+    "gallery/previews/shiny.svg": "34e5f99082904fe38b8478b087e32637ef6052551894ad3b06503ab31dc4f4b2",
+    "gallery/previews/gradio.svg": "edb6ebf9456e3c409b31dd45b299bfaee0543dfdb6ea767c4dfd23aab7fe04be",
+    "gallery/previews/rich-display.svg": "d8b693d8ab0100b8892fec768aad89b91f8ad4a6dff4835457f2f56521324c17",
+    "gallery/previews/256t-save.svg": "866375af41ffd641b62ce8c558300324d2f48fbea05e65f2b8ff085446983029",
+    "gallery/previews/256t-function.svg": "11e41ea5f4d72269e9b436051f8bb36afa9281e0359fba55db31fde088d79f99",
+    "gallery/previews/256t-call.svg": "a5bfbba293ca818ee0f7b458296f459c5868dce95c9da288b4fa709b1d7b3ccb",
+    "gallery/previews/256t-apply.svg": "bc173c1ca0534b502f3bf25fef1d9d47b69f014c01217b6b25cb636ba3ce5924"
+  },
+  "renderer": "9547ac9291f2b91ea956405094c88b27a57d2ea2c17f01956a881b973e0c053a",
+  "examples": {
+    "welcome": {
+      "document": "f15ddc447d30f7b6b20d67876d7826dc6d95a51ee0ee7aa9674aa318a1cf4491",
+      "cover": "06be30e9abeee03e2df65601f743118f91ad7c8e769e6bc1f8fb3d08e59c3a11"
+    },
+    "input-numbers": {
+      "document": "750d0d773c4297ede9fac20efd2041afaa6f46fc94a00fea786e02937d819d2e",
+      "cover": "455414e2d3a1a7ffa6c7def2ff3b68a52dbbb78a157adbc7aa94ff3571aacd74"
+    },
+    "fizzbuzz": {
+      "document": "9b26a2bdb2d2b26a6356fcc8ad1e3a3b9f0babce20c45b538b3f83fe19793e8e",
+      "cover": "2713c2cb4ceb1a110dee49328692f705c92feb32bcd5e98dfcd31b750ca6402b"
+    },
+    "hanoi": {
+      "document": "c6b4ddc439d23e9f189ac5b0127ed375e4a56445eebbe9a1e108d592941f6c91",
+      "cover": "0c0fac2b52be3a04840fb05a754f941843eb8bbb751b7892ddeb08dc70c4bef4"
+    },
+    "dataclasses": {
+      "document": "f0bcc972aa66f8954202bdcd0d95135daa0d606a9e47f801adc51be446158a6e",
+      "cover": "8789705fc3e7c646be48032b5a861c2ea489ac0aa5cde340e5c62bfd973f4e4f"
+    },
+    "generators": {
+      "document": "9ca6b20b93e2af00601db0651dab0270313f3f4032f4b77240b8f53e0443db9d",
+      "cover": "9ac8d501ff7c8696aabceb4a6187717d0d25314f4e738b804f48f504e5a07cfc"
+    },
+    "word-count": {
+      "document": "371dd34a2e9910f33f0e2ed5ba61f8d6bb881fb511b1313613ff8db1e0af7d87",
+      "cover": "52db60bd131ce44723fed72d207bbc59cfb9c85023ba914a87316d002f178922"
+    },
+    "regex-json": {
+      "document": "b864574efc32a5fd2581a5ab9ed33d0fe902120330787d1d30af09084b8c5670",
+      "cover": "f92597009b206c2c6dafbc0404f0ffa2022ca3d571886419ac59b002d8ac03f3"
+    },
+    "asyncio": {
+      "document": "f0301406be40c5ad013df10f7a19fdae64a8fb2176b0da048d1ecb5e08072820",
+      "cover": "3931f0670a9543f4a25c47e5de29e9ddada4b3015cb631d50cebc862c94da249"
+    },
+    "life": {
+      "document": "4da06242ac9ecc415db5825e7f5ea253de5d0078255186b741b42201d66dbd46",
+      "cover": "35b11032561c1bb8ef5ed499eff2afe6c8834919ebf57fbb015df0578ce3fd04"
+    },
+    "spiral": {
+      "document": "da4919d970e84dda4b15a7c8f1a5086ff014a9d00232fb528f8f2520736e163e",
+      "cover": "6bce4c94e8a0317e906b3715ed0af5163316f825969ffd5e9c8eb9647d1d90a4"
+    },
+    "star": {
+      "document": "7c820620222cb4a1beec07a171072d3f3c88a39c515ef78dd14357bafd6acbb3",
+      "cover": "207564c7e4817ba5899f6787587baaa68abaca8813f201868e969a30104c86eb"
+    },
+    "tree": {
+      "document": "915d14729ae687b886a16cadcd777662f3bd0d3d3ff39620119a24ab35e9731d",
+      "cover": "93386a1beaf0facea05d37afb613e67a3612c61ec8a6d14e149c1b348239c84f"
+    },
+    "koch": {
+      "document": "7d966d50c3e90de9da1cd4a2b8f9dba8cd5a9af0fbb9a4a940ddcd1fb41f439d",
+      "cover": "0966118dedcaa62f6f566323e5bbabbc88e7ba7fa1c878839e5376f58c2727bf"
+    },
+    "color-wheel": {
+      "document": "1e5c8f2ee6517f69c21abf25c6d7db643bd51ca7e90e3c7f80a3a10041bf39ed",
+      "cover": "c20668eca2e51655b7170f6a2a660cd2f4146055d16f8dd14303d27aa88bf95d"
+    },
+    "waves": {
+      "document": "cac81e7d261234986ed873b5516f29ac3c4802b9579753c68d2576d5568d12cb",
+      "cover": "58a5a7f2a920763363450f76c4b43a0801ca11c501d6de0e45cf681e1b522360"
+    },
+    "histogram": {
+      "document": "ebb9e61542af4280f90ecedd1ef190afec1e5d45477047e43f23ee6cc271e321",
+      "cover": "48abf44702fcd4ee8a24940c58cfb9205cb7684d6646958d5e1eabb6192b52bc"
+    },
+    "dataframe": {
+      "document": "24e828edeb34f68392b79690b9e134708280b195b1613c2e4ca1dff80b08a10c",
+      "cover": "ee9e50bf79d665761d14475d6a65822d75e14f0418a9937394d9f99791fc2d75"
+    },
+    "image": {
+      "document": "79f7c3e2e1db0ecf27cafde8dd9d0da125c80346d5d4ea5fcc25af3bc77bfc16",
+      "cover": "eca3cce7bf2e19610c7752052d58c8fdf4934502fe396c422c5ec66c1492a4dc"
+    },
+    "micrograd": {
+      "document": "7e6aba62ae8d617889927a58a9bbc9c2f02665670b9c74c94aa460df23576530",
+      "cover": "5b7ddd91e3844d5aade2b76fd011b2dce4ba2b0a684e6a05431711044baf0020"
+    },
+    "makemore": {
+      "document": "4713a9a2e3872541d81a30154046542f80bf7db1f9dcf2f6a7cf006f497cd91a",
+      "cover": "52fa7ddb189ea279282c33899e6c9f2ec9523cea1566e628d1bee2380889ba25"
+    },
+    "microgpt": {
+      "document": "cc6a5a286160677a0d8c36c610eca86a1293acfee9ba0e5dcc8def5a1aecae93",
+      "cover": "0bd5dd81ac050124a65afe894d4ac47cadcefa4b0d00dabddb1e43ecc8009e30"
+    },
+    "nanochat": {
+      "document": "5040a48f37dcce4bc3d2e7a8347663ff0f601b43d90070d95acf0c9844fada32",
+      "cover": "241bd694e307380967e61767048bc3faa2975052fccc284c2d681fe8b993c159"
+    },
+    "minbpe": {
+      "document": "0403dbdfb5e6a287d1bbc1a92e4d5d64a46ebb7919459bd7aec02ebcd88762d6",
+      "cover": "d0da2baddcf70c4856ed9368af0028b95cf05b55a2eedbeedcf8255e76076b62"
+    },
+    "packages": {
+      "document": "c2444ad02ba585250d43e7d8d97442ca3818d57c4a31898587d3451ea153983e",
+      "cover": "a1f7ddbeed8a2b7a807a79886c176d6c6355e610b04ceb9b3ade618504c8ad0e"
+    },
+    "shiny": {
+      "document": "88081a179133f78e15355dab531a2f0ae02921107e83507309aa5230b4f6cb7a",
+      "cover": "ca1cd41ab44c76e69101910d26c1a2c454ae1626a4cb1395156ba92fcba90889"
+    },
+    "gradio": {
+      "document": "d74b674ee51c86e130213f7765a9e07aef9afda75ec4c10fc5464660aa9f2ebb",
+      "cover": "141b20825c84a1e769a681abfec96b6d963daca55cc16160d2be9f47824b844b"
+    },
+    "rich-display": {
+      "document": "d884d7e7d95d7aedd85e488e0da4691b7f8780d896de4d41a5a7836c5f226ada",
+      "cover": "f8ab72bb9df419b6a4433cd1865dcd58c9b2ce5a2f36f3c2876e9940c5a107c1"
+    },
+    "256t-save": {
+      "document": "5c3192fd697d45e0eba2bf0629b7ca2a44df7fe847ea9e663b30c2d085885274",
+      "cover": "390780dd60f2ae41d59c51690a92a84507d6b1bea76fddae451808fdc98ca3bb"
+    },
+    "256t-function": {
+      "document": "05603fa1b2b865182e0cf9e7f1f326a7bd61e267ff9d97a069a757cb20c7b6cf",
+      "cover": "3812d3185ff9c98ee743280fc09a114bab3b07973da3e77b5d84720a71cf49b9"
+    },
+    "256t-call": {
+      "document": "9185e9569746e2ee561c375fd77b531d82dfeff09371275a4df22f3670c44d8a",
+      "cover": "8746d0d4c2fd0989b3213be7c2ea64d65d02c17c9a30c77e32541e40745db55d"
+    },
+    "256t-apply": {
+      "document": "64d89a48e5f415443674db00a4e4db658b62b160373471a996065175a897d642",
+      "cover": "1917aed8ddf38009f72896582c677a55fbf7bc77d6b13d01771902abf44fced9"
+    }
+  }
+}

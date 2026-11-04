@@ -1,5 +1,5 @@
 // Test-only SDK surface. Never loaded by the shipped app. The sandbox is the real one.
-export { createSandbox } from '/vendor/hashbin-sdk-v0.4.0.mjs';
+export { createSandbox } from '/vendor/fragment-kit-v0.3.2/vendor/hashbin-sdk-v0.4.0.mjs?execution';
 const encode = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 async function cid(text) {
   const bytes = new TextEncoder().encode(text), size = new Uint8Array(6);
@@ -7,7 +7,7 @@ async function cid(text) {
   return encode(size) + encode(bytes.length <= 64 ? bytes : new Uint8Array(await crypto.subtle.digest('SHA-512', bytes)));
 }
 export class HashBinClient {
-  constructor(config) { this.config = config; }
+  constructor(config) { this.config = {...config,redirectUri:location.origin+'/'}; }
   // Mirrors the real SDK: tests choose approval, cancellation or a blocked popup (redirect).
   publish(content, { clientState }) {
     const outcome = localStorage.getItem('pythononline:test:publish') || 'approve';

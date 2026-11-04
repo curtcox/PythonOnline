@@ -2,9 +2,9 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs'); const path = require('node:path');
 const { chromium, firefox, webkit } = require('playwright');
-const { HashBinDocuments: D } = require('../../src/hashbin.js');
-const { ShareLinks: S } = require('../../src/share-links.js');
-const LZ = require('../../vendor/lz-string.min.js');
+const { HashBinDocuments: D } = require('../../src/fragment-config.mjs');
+const { ShareLinks: S } = require('../../src/fragment-config.mjs');
+const LZ = require('../../src/fragment-config.mjs').LZString;
 const examples = require('../../src/examples.js').catalog;
 const root = path.resolve(__dirname, '../..'), base = 'http://localhost';
 const work = (src, autorun = false) => ({ src, python: { stdin: 'shared input\n', autorun } });
@@ -35,13 +35,13 @@ const engine = process.env.BROWSER || 'chromium';
         if (url.origin !== base) return route.abort();
         let body;
         if (name === '/src/python-sandbox.js') body = 'globalThis.PythonSandbox={factory:()=>()=>({postMessage(){},terminate(){}})};';
-        else if (name === '/src/offline.js') body = '';
+        else if (name === '/src/offline-ui.mjs') body = '';
         else {
           const file = path.join(root, name === '/' ? 'index.html' : name);
           if (!file.startsWith(root + '/') || !fs.existsSync(file)) return route.fulfill({ status: 404, body: '' });
           body = fs.readFileSync(file);
         }
-        return route.fulfill({ body, contentType: name === '/' ? 'text/html' : name.endsWith('.css') ? 'text/css' : 'text/javascript' });
+        return route.fulfill({ body, contentType: name === '/' ? 'text/html' : name.endsWith('.css') ? 'text/css' : name.endsWith('.json') ? 'application/json' : 'text/javascript' });
       });
       const page = await context.newPage(), errors = [];
       page.on('pageerror', error => errors.push(String(error)));
@@ -56,7 +56,7 @@ const engine = process.env.BROWSER || 'chromium';
           // goto() may be a fragment navigation; its remote CID fetch is asynchronous.
           await page.waitForFunction(value => JSON.stringify(PythonOnline.snapshot()) === JSON.stringify(value), expected);
           assert.deepEqual(await page.evaluate(() => PythonOnline.snapshot()), expected);
-          assert.equal(page.url(), url);
+          if(new URL(url).searchParams.has('example'))assert.equal(new URL(page.url()).searchParams.has('example'),false);else assert.equal(page.url(),url);
           assert.equal(await page.evaluate(() => localStorage.getItem('pythononline:work')), stored);
           assert.equal(await page.locator('#persistent-home').isChecked(), false);
         }
@@ -82,7 +82,7 @@ const engine = process.env.BROWSER || 'chromium';
         assert.deepEqual(await page.evaluate(() => PythonOnline.snapshot()), incoming);
         await page.locator('#more-toggle').click(); await page.locator('#resume-work').click();
         assert.equal(await page.locator('#saved-work option').count(), 2);
-        await page.locator('#saved-work').selectOption('1'); await page.locator('#restore-work').click();
+        await page.locator('#saved-work').selectOption('1'); await page.locator('#restore-work').click(); await page.locator('#fk-more-drawer .fk-close').click();
         assert.deepEqual(await page.evaluate(() => PythonOnline.snapshot()), previous);
         assert.equal(await page.locator('body').getAttribute('data-state'), 'idle');
         const restoredURL = page.url(); await page.reload(); await page.waitForFunction(() => !!globalThis.PythonOnline);
@@ -90,13 +90,21 @@ const engine = process.env.BROWSER || 'chromium';
         assert.equal(page.url(), restoredURL);
         await page.setViewportSize({ width: 375, height: 812 });
         await page.locator('#more-toggle').click(); await page.locator('#resume-work').click();
-        assert.ok((await page.locator('#restore-work').boundingBox()).height >= 40);
+        assert.ok(Math.round((await page.locator('#restore-work').boundingBox()).height) >= 44);
         assert.equal(await page.locator('#saved-work').evaluate(element => getComputedStyle(element).fontSize), '16px');
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
         fs.mkdirSync(path.join(root, 'test-results'), { recursive: true });
         await page.screenshot({ path: path.join(root, 'test-results', engine + '-draft-recovery.png') });
       }
       assert.deepEqual(errors, []); await context.close();
+    }
+    // A Publish approval already in flight before the migration must restore all state.
+    for(const cancelled of [false,true]){
+      const context=await browser.newContext({serviceWorkers:'block'});
+      await context.route('http://localhost/**',route=>{const url=new URL(route.request().url()),name=url.pathname;const file=path.join(root,name==='/'?'index.html':name);if(!file.startsWith(root+'/')||!fs.existsSync(file))return route.fulfill({status:404,body:''});let body=fs.readFileSync(file);if(name==='/src/python-sandbox.js')body='globalThis.PythonSandbox={factory:()=>()=>({postMessage(){},terminate(){}})};';if(name==='/src/offline-ui.mjs')body='';return route.fulfill({body,contentType:name==='/'?'text/html':name.endsWith('.json')?'application/json':name.endsWith('.css')?'text/css':'text/javascript'});});
+      const snapshot=work('print("pre-kit return")'),payload=D.serialize(snapshot),clientId='app_2eabd9ad-8b90-4635-accd-7583e5241f96';
+      await context.addInitScript(({clientId,payload,snapshot})=>sessionStorage.setItem('hashbin:publish:'+clientId+':before-kit',JSON.stringify({bytes:btoa(unescape(encodeURIComponent(payload))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),clientState:{snapshot},createdAt:Date.now()})),{clientId,payload,snapshot});
+      const page=await context.newPage();await page.goto(base+'/?run=0#hashbin_publish=before-kit&'+(cancelled?'error=access_denied':'cid='+cid(payload)));await page.waitForFunction(()=>!!globalThis.PythonOnline);assert.deepEqual(await page.evaluate(()=>PythonOnline.snapshot()),snapshot);assert.equal(await page.evaluate(key=>sessionStorage.getItem(key),'hashbin:publish:'+clientId+':before-kit'),null);if(cancelled)assert.match(await page.locator('#hashbin-status').innerText(),/cancelled/);await context.close();
     }
     console.log(engine + ': program URLs are independent of saved drafts; recovery passed');
   } finally { await browser.close(); }

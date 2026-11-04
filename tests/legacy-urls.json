@@ -1,0 +1,211 @@
+{
+  "repo": "PythonOnline",
+  "slug": "python",
+  "commit": "0ab7ed4aeb1f310963d748156e95ed5d9d840195",
+  "example": {
+    "id": "welcome",
+    "source": "def greet(name):\n    return f\"Hello, {name}!\"\n\nfor _ in range(3):\n    print(greet(input(\"Your name: \")))\n\nimport turtle as t\nt.speed(0)\nt.color(\"#167c80\")\nfor side in range(36):\n    t.forward(100)\n    t.left(170)\nprint(\"Try changing the angle or the names below.\")\n",
+    "raw": "{\"format\":\"hashbin-diagram\",\"version\":1,\"type\":\"python\",\"src\":\"def greet(name):\\n    return f\\\"Hello, {name}!\\\"\\n\\nfor _ in range(3):\\n    print(greet(input(\\\"Your name: \\\")))\\n\\nimport turtle as t\\nt.speed(0)\\nt.color(\\\"#167c80\\\")\\nfor side in range(36):\\n    t.forward(100)\\n    t.left(170)\\nprint(\\\"Try changing the angle or the names below.\\\")\\n\",\"python\":{\"stdin\":\"Ada\\nGrace\\nGuido\\n\",\"autorun\":false}}",
+    "expected": {
+      "src": "def greet(name):\n    return f\"Hello, {name}!\"\n\nfor _ in range(3):\n    print(greet(input(\"Your name: \")))\n\nimport turtle as t\nt.speed(0)\nt.color(\"#167c80\")\nfor side in range(36):\n    t.forward(100)\n    t.left(170)\nprint(\"Try changing the angle or the names below.\")\n",
+      "python": {
+        "stdin": "Ada\nGrace\nGuido\n",
+        "autorun": false
+      }
+    }
+  },
+  "sourceFiles": {
+    "README.md": "91e372c76f3acb831fedd00bc6d6caecf237083ed3f5a18cd9cfdea6afa09606",
+    "docs/256t-calls.html": "5aadf0ae8a575a2d9c15e4d9b7bde3d839085d05fbdf5fcb868c1f4d4e7d6f86",
+    "docs/256t-calls.md": "d98695577f684e6b76f0ab0be4e37ff1ab5ddaecc7854001e94cb42f8a49f6b3",
+    "docs/persistent-files.html": "06c50e2e0bdf770ac4427003555ea799811fc56a6e21e603ba5727ad0a690c61",
+    "docs/persistent-files.md": "5f6fa38eed17892b7309ae4a27deb388ac07537b7bd3211f1c19f9b947159e16",
+    "docs/turtle.html": "1c1eaf1c774a9637a10c7f4e5bfb1463f7e06487105b1752aaa419c0aa5a34c4",
+    "docs/turtle.md": "906bad88d7749355f99f02a8cad73db3fd8dc3c824e72d665ad44157c66325a3",
+    "index.html": "351f3826c657e03faf288065094e09d5682c26518c07c9fd43f2f0e39b802028",
+    "offline-assets.js": "33669f55dd588c51b0b941be490140948a5f2b719c06f031642a07e6f41e2b87",
+    "service-worker.js": "e56fe8c2a106ef9ffa8bbfc44aa90a4a447b56c6720b27c017b7c6053773a644",
+    "src/app.js": "8ccbb736cf144215a66f7d371c7f2b2cf56df1955c71af368bdf6bf427311418",
+    "src/editor-drafts.js": "edf2906b4a6863bd59a891cee96a7d18d4b7cddd9e2f14c49427908f33c5bff2",
+    "src/examples.js": "575cd776da2c23887b6428d31f8385586b0497b099b9d3dffc9cbdd381d23663",
+    "src/export.js": "145e32b55fae06750eff2898cd25a079956771148768a9c2bc93eac2932f387e",
+    "src/gallery.js": "09f6b5a2c34ad63710396d343145ec631d9bc767de4bee737267959b6a3dc60e",
+    "src/hashbin-panel.js": "abc38eab7381f51b4835e6bc4635b59144b7b5d264ad251511d06e41cf1cbb6d",
+    "src/hashbin.js": "59e716f83078b96e1e09932b8dd8a13ffcce6c1318c9c8b62497932175bac4b2",
+    "src/offline.js": "208bf7c711b8937db5a84c34cb11908bfd994ea201657aae1f7a35ddcb48eaac",
+    "src/output-view.js": "fa2adb6d5ea454443fecc097814670c7f5b551b413f1acba4535a87fa44d1b50",
+    "src/python-client.js": "3a03988ecc252b30a357f3b0598e2c6ed5fdbf220457b34aef019386e7e4b981",
+    "src/python-core.js": "e6410b2432f41d43007b9f0445babf2e7f5eef167eb99c45a2b9ce0e9557f136",
+    "src/python-home.js": "7d88ede6784ff77a75c2a17d11bd8fb551ee3ee175ba059672b4a6a986eb6b9b",
+    "src/python-sandbox.js": "2f630f5b99892d7a0d2a0922597320ea566d8e40ffa9a59f79a53900580a0f9a",
+    "src/python-storage.js": "6ee282c45a0b61eaf345bdf041228b8fbcecd9dc7e46edbf3439cb416f516e6b",
+    "src/python-worker.js": "3e21837be07a2f1f03672f299ef3c352283bddd8e46139ea11d58c142a290681",
+    "src/qr.js": "a6821da15236196ed734bc65c81ad0ddc03ef363e3b61dd7f550335114961921",
+    "src/render-scheduler.js": "2ca91d13be1f761a79427318a6096cfb55f6b15954d67047704e12c824e253a1",
+    "src/share-links.js": "0615647ffbe0a245ac5448bc1cdf1f160cccd90f5675d8bb44ebbed83368f4ff",
+    "src/traceback.js": "19925838b3f7e22f501ab1491f05ade4e895b15efa4d2501309f2fb5f962b7e1",
+    "src/turtle-player.js": "9027d24a24034b12ac3350ecd113141725abc939a213ed6a755a01825cc9d933",
+    "tests/assets.test.js": "d93a5363cee34c31b5e2a3132f7f23d82dc7eddbb20c95de62e567e1b2ce5721",
+    "tests/browser/all.cjs": "5b63552dd0af0446970753adbba03c6c8808d79080f15e426c7e584fabfc5c91",
+    "tests/browser/fixtures/hosted-bootstrap.js": "c17025359e499bfaa0b3dc2ef3f42f9f2dc801e352e34145f8e3f0e485b21642",
+    "tests/browser/live-hosted.cjs": "d017224bcbeb87d063fb5218cacc0cfc17cd30c0bdf34687587d226a542567b7",
+    "tests/browser/url-state.cjs": "f14def9c294154809e5782cd2f1dcf1f82d73303da1fa833336eb2db4222fdf7",
+    "tests/client.test.js": "f73e0d6cc980b1ec3125aef0960842eab3ae9c371317351a57baa7567cd4e262",
+    "tests/core.test.js": "0a259539eb86d4de02b4aafabc390fe661dde89fbe48e942d81de7f6bbd36f5c",
+    "tests/drafts.test.js": "58e9102f30fa42653b1c6f25a20c9723fef9946a1f6b72c7bd593047b9ba4f57",
+    "tests/qr.test.js": "29088fb4afec2de59e1840620bcf791efb3e252cc29ff0bb9d0bb9f561d77dd1",
+    "tests/sharing.test.js": "9cfea9e4917475a6c9723e3fef9b03fec3185f72a76e7e542d9c1d8f6c2e9b9f",
+    "tests/storage.test.js": "6ff03bfc9639a385332a47ed1612e226a8a1c6f5dd3c831903630a7b10e11641"
+  },
+  "storage": [
+    {
+      "file": "tests/browser/all.cjs",
+      "key": "pythononline:persistent-home"
+    },
+    {
+      "file": "tests/browser/all.cjs",
+      "key": "pythononline:persistent-home"
+    },
+    {
+      "file": "tests/browser/all.cjs",
+      "key": "pythononline:work"
+    },
+    {
+      "file": "tests/browser/all.cjs",
+      "key": "pythononline:work"
+    },
+    {
+      "file": "tests/browser/all.cjs",
+      "key": "hashbin:tokens:test-client"
+    },
+    {
+      "file": "tests/browser/all.cjs",
+      "key": "pythononline:test:revoked"
+    },
+    {
+      "file": "tests/browser/all.cjs",
+      "key": "hashbin:tokens:test-client"
+    },
+    {
+      "file": "tests/browser/all.cjs",
+      "key": "pythononline:test:publish"
+    },
+    {
+      "file": "tests/browser/all.cjs",
+      "key": "pythononline:test:publish"
+    },
+    {
+      "file": "tests/browser/all.cjs",
+      "key": "pythononline:test:publish"
+    },
+    {
+      "file": "tests/browser/url-state.cjs",
+      "key": "pythononline:work"
+    },
+    {
+      "file": "tests/browser/url-state.cjs",
+      "key": "pythononline:work"
+    },
+    {
+      "file": "tests/browser/url-state.cjs",
+      "key": "pythononline:work"
+    },
+    {
+      "file": "tests/browser/url-state.cjs",
+      "key": "pythononline:work"
+    },
+    {
+      "file": "tests/browser/url-state.cjs",
+      "key": "pythononline:work"
+    }
+  ],
+  "caches": [],
+  "references": [
+    {
+      "file": "README.md",
+      "href": "https://python.hashbin.page/gallery.html)."
+    },
+    {
+      "file": "src/examples.js",
+      "href": "https://www.gradio.app/docs/gradio/interface"
+    },
+    {
+      "file": "tests/browser/all.cjs",
+      "href": "?example=microgpt"
+    },
+    {
+      "file": "tests/browser/all.cjs",
+      "href": "?example=nanochat"
+    },
+    {
+      "file": "tests/browser/all.cjs",
+      "href": "?example=256t-function&run=0"
+    },
+    {
+      "file": "tests/browser/url-state.cjs",
+      "href": "?example=star&run=0"
+    },
+    {
+      "file": "tests/browser/url-state.cjs",
+      "href": "?doc=invalid"
+    },
+    {
+      "file": "tests/browser/url-state.cjs",
+      "href": "?example=missing"
+    },
+    {
+      "file": "tests/sharing.test.js",
+      "href": "https://example.com/?example=star"
+    },
+    {
+      "file": "tests/storage.test.js",
+      "href": "?example=hello"
+    },
+    {
+      "file": "tests/storage.test.js",
+      "href": "?compressed=x"
+    },
+    {
+      "file": "tests/storage.test.js",
+      "href": "?doc=x"
+    }
+  ],
+  "cases": [
+    {
+      "label": "source fragment",
+      "href": "https://curtcox.github.io/PythonOnline/#def%20greet(name)%3A%0A%20%20%20%20return%20f%22Hello%2C%20%7Bname%7D!%22%0A%0Afor%20_%20in%20range(3)%3A%0A%20%20%20%20print(greet(input(%22Your%20name%3A%20%22)))%0A%0Aimport%20turtle%20as%20t%0At.speed(0)%0At.color(%22%23167c80%22)%0Afor%20side%20in%20range(36)%3A%0A%20%20%20%20t.forward(100)%0A%20%20%20%20t.left(170)%0Aprint(%22Try%20changing%20the%20angle%20or%20the%20names%20below.%22)%0A",
+      "kind": "source",
+      "src": "def greet(name):\n    return f\"Hello, {name}!\"\n\nfor _ in range(3):\n    print(greet(input(\"Your name: \")))\n\nimport turtle as t\nt.speed(0)\nt.color(\"#167c80\")\nfor side in range(36):\n    t.forward(100)\n    t.left(170)\nprint(\"Try changing the angle or the names below.\")\n"
+    },
+    {
+      "label": "compressed query",
+      "href": "https://curtcox.github.io/PythonOnline/?compressed=CYUwZgBA5gTiIBcAUA7AhgWxASgFwCgIiI4EBXGFCMAIgAkQAbRgewBoIBvdLAXwEIa+fGBYwIAfQgBLKjDQooIJAGY8hYgAcYs5LHjJZmsshoBNFhQg8QuCDWyPh0jJrEII5GAkYgIaAGdPfAQAOgDNeGAkAAZsENCAYxZWGCQaAGIARgA2AHZEgA4YhxExCADpUBk5BSVVHPViT1DRGAB3NBhorJi4jSIw3zBkLLz+7V10gBUYAE8IRIALOtkoTyW-Ot8IcoRN60wQIIAjJhZ20NKgA",
+      "kind": "source",
+      "src": "def greet(name):\n    return f\"Hello, {name}!\"\n\nfor _ in range(3):\n    print(greet(input(\"Your name: \")))\n\nimport turtle as t\nt.speed(0)\nt.color(\"#167c80\")\nfor side in range(36):\n    t.forward(100)\n    t.left(170)\nprint(\"Try changing the angle or the names below.\")\n"
+    },
+    {
+      "label": "document query",
+      "href": "https://curtcox.github.io/PythonOnline/?doc=N4IgZg9gTgtghgFxALhACzgZzQIwJYB2AtACZ5wDmUcMIANCAG4CmUmeEBKAjAwgJ4AHZihCD+CNJ3ohMUAMaiSzMAAIqzZggAUBGswCUyADoFV51VC0BXKGbDGQACWYAbVxDqrgemMwC+AISOpqaQUKoA+qqElnAEFMzaAMxGphaqglCEOhpa2oSC1jqOAJoQtqq+zMiqjgYNoQR4MILQCKoItgiuzKpYnaYIAHSYwswk2gAMBkPD8hAeUNqOAMTcAGwA7PIAHFP1YdCq7MoxZtQJSckbaWYWI+EA7nBQk9xTM+kPw71gOtwtl8CFkcisQAAVKD8VTyDAJQgUTpoPrxCi9VTHSR9aqYVQ4NwQJ7DQ5cBjiSTSZCgTAIMhcVAAQRIcFMAHFqPJmOzrHgSBBTDI4MVoNYGWA4K5MAF-EA",
+      "kind": "source",
+      "raw": "{\"format\":\"hashbin-diagram\",\"version\":1,\"type\":\"python\",\"src\":\"def greet(name):\\n    return f\\\"Hello, {name}!\\\"\\n\\nfor _ in range(3):\\n    print(greet(input(\\\"Your name: \\\")))\\n\\nimport turtle as t\\nt.speed(0)\\nt.color(\\\"#167c80\\\")\\nfor side in range(36):\\n    t.forward(100)\\n    t.left(170)\\nprint(\\\"Try changing the angle or the names below.\\\")\\n\",\"python\":{\"stdin\":\"Ada\\nGrace\\nGuido\\n\",\"autorun\":false}}"
+    },
+    {
+      "label": "document fragment",
+      "href": "https://curtcox.github.io/PythonOnline/#%7B%22format%22%3A%22hashbin-diagram%22%2C%22version%22%3A1%2C%22type%22%3A%22python%22%2C%22src%22%3A%22def%20greet(name)%3A%5Cn%20%20%20%20return%20f%5C%22Hello%2C%20%7Bname%7D!%5C%22%5Cn%5Cnfor%20_%20in%20range(3)%3A%5Cn%20%20%20%20print(greet(input(%5C%22Your%20name%3A%20%5C%22)))%5Cn%5Cnimport%20turtle%20as%20t%5Cnt.speed(0)%5Cnt.color(%5C%22%23167c80%5C%22)%5Cnfor%20side%20in%20range(36)%3A%5Cn%20%20%20%20t.forward(100)%5Cn%20%20%20%20t.left(170)%5Cnprint(%5C%22Try%20changing%20the%20angle%20or%20the%20names%20below.%5C%22)%5Cn%22%2C%22python%22%3A%7B%22stdin%22%3A%22Ada%5CnGrace%5CnGuido%5Cn%22%2C%22autorun%22%3Afalse%7D%7D",
+      "kind": "source",
+      "raw": "{\"format\":\"hashbin-diagram\",\"version\":1,\"type\":\"python\",\"src\":\"def greet(name):\\n    return f\\\"Hello, {name}!\\\"\\n\\nfor _ in range(3):\\n    print(greet(input(\\\"Your name: \\\")))\\n\\nimport turtle as t\\nt.speed(0)\\nt.color(\\\"#167c80\\\")\\nfor side in range(36):\\n    t.forward(100)\\n    t.left(170)\\nprint(\\\"Try changing the angle or the names below.\\\")\\n\",\"python\":{\"stdin\":\"Ada\\nGrace\\nGuido\\n\",\"autorun\":false}}"
+    },
+    {
+      "label": "example",
+      "href": "https://curtcox.github.io/PythonOnline/?example=welcome",
+      "kind": "example",
+      "id": "welcome"
+    },
+    {
+      "label": "CID",
+      "href": "https://curtcox.github.io/PythonOnline/#AAAAAAEJn7XSRkxTsrOCPT4E3SgLQPkDPWW5Ait66ZszYRkvkA20o5pwcWXhgMS9YKaPJSWtujHlOnfZKH9Xu9qQ5y1s-A",
+      "kind": "cid",
+      "cid": "AAAAAAEJn7XSRkxTsrOCPT4E3SgLQPkDPWW5Ait66ZszYRkvkA20o5pwcWXhgMS9YKaPJSWtujHlOnfZKH9Xu9qQ5y1s-A"
+    }
+  ]
+}
