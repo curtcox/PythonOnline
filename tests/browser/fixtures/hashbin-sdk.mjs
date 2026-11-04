@@ -1,5 +1,5 @@
 // Test-only SDK surface. Never loaded by the shipped app. The sandbox is the real one.
-export { createSandbox } from '/vendor/fragment-kit-v0.3.2/vendor/hashbin-sdk-v0.4.0.mjs?execution';
+export { createSandbox } from '/vendor/fragment-kit-v0.3.3/vendor/hashbin-sdk-v0.4.0.mjs?execution';
 const encode = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 async function cid(text) {
   const bytes = new TextEncoder().encode(text), size = new Uint8Array(6);

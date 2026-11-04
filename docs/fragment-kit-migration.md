@@ -1,6 +1,6 @@
 # Shared tools migration
 
-The app pins the published Fragment Kit v0.3.2 under `vendor/fragment-kit-v0.3.2`. Its production adapter is `src/fragment-config.mjs` and its single app config is `fragment-kit.config.json`. The registered public client ID stays in the existing HTML meta tag.
+The app pins the published Fragment Kit v0.3.3 under `vendor/fragment-kit-v0.3.3`. Its production adapter is `src/fragment-config.mjs` and its single app config is `fragment-kit.config.json`. The registered public client ID stays in the existing HTML meta tag.
 
 URL readers, CID verification, Publish, QR generation and scanning, sharing, drafts, scheduler, offline core, shell, tabs and gallery use the pinned kit. Legacy writers remain enabled until the fleet has v1 readers. The kit's immutable `v2` workflows are independent of the exact runtime version.
 
