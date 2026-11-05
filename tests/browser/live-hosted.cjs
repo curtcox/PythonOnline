@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const fs = require('node:fs');
 const origin = 'https://a2eabd9ad8b904635accd7583e5241f96.hashbin.app';
-const url = 'https://curtcox.github.io/PythonOnline/?run=0';
+const url = process.env.LIVE_BASE_URL || 'https://python.hashbin.page/?run=0';
 (async () => {
   const browser = await chromium.launch({ headless: true,
     executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH,
@@ -50,7 +50,11 @@ const url = 'https://curtcox.github.io/PythonOnline/?run=0';
     assert.equal(await page.locator('#persistent-home').isChecked(), false);
     assert.match(await run('import js\nprint("linked", js.self.origin)'), /linked null/);
     assert.deepEqual(errors, []);
-    assert.deepEqual(diagnostics, [], 'Unexpected network or CSP failures');
+    // Cloudflare injects this beacon outside the checked-in application. Keep
+    // the application policy strict and report its refusal separately.
+    const beacon=diagnostics.filter(text=>text.includes('https://static.cloudflareinsights.com/beacon.min.js/'));
+    assert.deepEqual(diagnostics.filter(text=>!beacon.includes(text)), [], 'Unexpected network or CSP failures');
+    if(beacon.length)console.log('Host-injected Cloudflare analytics was blocked by the application CSP.');
     console.log('Live hosted persistence, reload, isolation and incoming-link guard passed. Proof:', proof);
   } catch (error) {
     console.error('Diagnostics:', diagnostics);

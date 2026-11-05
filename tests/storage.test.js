@@ -4,6 +4,10 @@ const Home = require('../src/python-home.js');
 const Preference = require('../src/python-storage.js');
 const { harden } = require('../src/python-core.js');
 const Client = require('../src/python-client.js');
+test('hosted persistence is offered only on its registered canonical origin and local fixtures',()=>{
+ for(const url of ['https://python.hashbin.page/','http://127.0.0.1:8000/','http://localhost:8000/','http://[::1]:8000/'])assert.equal(Preference.supportsHosted(url),true,url);
+ for(const url of ['https://curtcox.github.io/PythonOnline/','https://python.hashbin.page.evil.test/','http://python.hashbin.page/'])assert.equal(Preference.supportsHosted(url),false,url);
+});
 
 test('persistence is local opt-in and incoming program URLs cannot enable it', () => {
   const entries = new Map();

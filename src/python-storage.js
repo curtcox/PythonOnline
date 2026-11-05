@@ -7,6 +7,10 @@ class PythonStoragePreference {
     try { this.enabled = storage?.getItem('pythononline:persistent-home') === 'true'; } catch (_) { /* Storage can be unavailable. */ }
     if (PythonStoragePreference.isProgramLink(url)) this.guardLink();
   }
+  static supportsHosted(value, canonicalOrigin = 'https://python.hashbin.page/') {
+    const url = new URL(value);
+    return url.origin === new URL(canonicalOrigin).origin || ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+  }
   static isProgramLink(value) {
     const url = new URL(value);
     return Boolean(url.hash) || ['doc', 'compressed', 'example', 'raw', 'url', 'code'].some(key => url.searchParams.has(key));
