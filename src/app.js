@@ -41,8 +41,15 @@ function state(name) { document.body.dataset.state = name; }
 // The local preference never comes from program/share documents.
 const sdk = await loadExecutionSDK();
 const homePreference = new PythonStoragePreference(local, location.href);
+const hostedAvailable=PythonStoragePreference.supportsHosted(location.href,config.canonicalOrigin);
+const hostedHelp='Persistent files are available on python.hashbin.page. Programs here use temporary files.';
+if(!hostedAvailable){
+ homePreference.guardLink();$('persistent-home').disabled=true;
+ const link=document.createElement('a');link.id='persistent-home-site';link.textContent='Open this program on python.hashbin.page';link.href=config.canonicalOrigin;link.target='_blank';link.rel='noopener noreferrer';
+ link.onclick=()=>{link.href=urlState.build(snapshot(),{url:config.canonicalOrigin,run:false}).href;};$('home-status').after(link);
+}
 $('persistent-home').checked = homePreference.enabled;
-$('home-status').textContent = homePreference.enabled ? 'Saved files will open in an isolated run origin.' : PythonStoragePreference.isProgramLink(location.href) ? 'Linked programs start without saved files. Review the code before enabling storage.' : 'Files are temporary while this is off.';
+$('home-status').textContent = !hostedAvailable ? hostedHelp : homePreference.enabled ? 'Saved files will open in an isolated run origin.' : PythonStoragePreference.isProgramLink(location.href) ? 'Linked programs start without saved files. Review the code before enabling storage.' : 'Files are temporary while this is off.';
 function makeClient() { return new PythonClient({ persistent: homePreference.enabled,
   createWorker: PythonSandbox.factory(sdk, { persistent: homePreference.enabled }), onMessage: workerMessage }); }
 function workerMessage(item) {
@@ -65,6 +72,7 @@ function workerMessage(item) {
 }
 let client = makeClient();
 function changeStorage(enabled, remember = true) {
+  if(!hostedAvailable){homePreference.guardLink();$('persistent-home').checked=false;$('home-status').textContent=hostedHelp;return;}
   scheduler.cancel(); clearInterval(clock); client.dispose();
   if (remember) homePreference.set(enabled); else homePreference.guardLink();
   $('persistent-home').checked = homePreference.enabled;
@@ -75,7 +83,7 @@ function changeStorage(enabled, remember = true) {
 }
 function isolateIncomingProgram() {
   if (homePreference.enabled) changeStorage(false, false);
-  $('home-status').textContent = 'Loaded programs start without saved files. Review the code before enabling storage.';
+  $('home-status').textContent = hostedAvailable?'Loaded programs start without saved files. Review the code before enabling storage.':hostedHelp;
 }
 $('persistent-home').onchange = () => changeStorage($('persistent-home').checked);
 const scheduler = new RenderScheduler({ detect: () => {}, render: () => run('auto'), renderDelay: 750 });

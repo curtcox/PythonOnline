@@ -15,3 +15,5 @@ Optional packages live in `pythononline-packages-v1`, outside application readin
 This document describes the migration source. Current remote rollout and deployment evidence is tracked in Fragment Kit's `todo/rollout-status.md`.
 
 Publish returns already in flight before deployment remain readable for this app’s registered public client. New transactions are app-prefixed; unrelated clients and old credential keys are never read by the compatibility adapter. Consuming a callback removes its legacy transaction.
+
+The registered hosted sandbox allows python.hashbin.page as its parent. Recovery copies keep temporary opaque execution and disable the persistence control, with an explicit link carrying the current program and input to canonical for review. Incoming links still start without persistence. No hosted allowlist or account registration is changed. Canonical live acceptance separately reports the host-injected Cloudflare analytics beacon blocked by CSP; the app policy is not broadened for analytics.
