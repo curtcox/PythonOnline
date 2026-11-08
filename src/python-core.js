@@ -69,7 +69,8 @@ class PythonCore {
       const deps = specification.dependencies;
       if (deps.length) {
         await py.loadPackage('micropip');
-        await py.runPythonAsync('import micropip\nawait micropip.install(runtime.dependencies(_online_source))');
+        // Explicit script pins also constrain transitive resolution; parallel lookup must not select a newer conflicting dependency.
+        await py.runPythonAsync('import micropip\n_online_deps = runtime.dependencies(_online_source)\nawait micropip.install(_online_deps, constraints=_online_deps)');
       }
       py.runPython('runtime.patch_matplotlib()');
       send({ type: 'running' }); start = performance.now();
