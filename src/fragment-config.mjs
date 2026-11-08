@@ -1,4 +1,4 @@
-import * as kit from '../vendor/fragment-kit-v0.4.1/src/index.js';
+import * as kit from '../vendor/fragment-kit-v0.4.3/src/index.js';
 import appConfig from '../fragment-kit.config.json' with { type: 'json' };
 export const config = kit.createConfig(appConfig);
 export const type = { type:'python',settingsKeys:[],fileName:'program.json',contentType:'application/json',
@@ -23,6 +23,6 @@ export function publishTransactions(storage,clientId=config.hashbinClientId){
 export class HashBinStore extends kit.HashBinStore {constructor(options={}){let storage;try{storage=globalThis.sessionStorage;}catch{}super({config,type,transactionStorage:publishTransactions(storage,options.clientId??config.hashbinClientId),...options});}}
 export const ShareLinks={build:({url,run,view,...doc})=>urlState.build(doc,{url,run,view}),parse:href=>{const intent=urlState.parse(href);return intent.kind==='none'?null:{...intent,...intent.doc};}};
 export const LZString={compressToEncodedURIComponent:kit.compress,decompressFromEncodedURIComponent:kit.decompress};
-export {ShareClient} from '../vendor/fragment-kit-v0.4.1/src/index.js';
+export {ShareClient} from '../vendor/fragment-kit-v0.4.3/src/index.js';
 // Execution and Publish use the same immutable SDK release; isolation remains app-owned.
-export const loadExecutionSDK=()=>import('../vendor/fragment-kit-v0.4.1/vendor/hashbin-sdk-v0.4.0.mjs?execution');
+export const loadExecutionSDK=()=>import('../vendor/fragment-kit-v0.4.3/vendor/hashbin-sdk-v0.4.0.mjs?execution');

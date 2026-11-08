@@ -1,8 +1,8 @@
 import { mountPythonAi } from './ai.mjs';
-import { handleAiCallback } from '../vendor/fragment-kit-v0.4.1/src/ai/index.js';
+import { handleAiCallback } from '../vendor/fragment-kit-v0.4.3/src/ai/index.js';
 let aiCallback=false, aiCallbackError;
 try {aiCallback=handleAiCallback();}catch(error){aiCallbackError=error;}
-import {RenderScheduler,HashBinPanel,compactShell,createShell,mountMobileTabs,createShareDialog,createQrDialog} from '../vendor/fragment-kit-v0.4.1/src/index.js';
+import {RenderScheduler,HashBinPanel,compactShell,createShell,mountMobileTabs,createShareDialog,createQrDialog} from '../vendor/fragment-kit-v0.4.3/src/index.js';
 import PythonDrafts from './editor-drafts.mjs';
 import {config,type,urlState,HashBinDocuments,HashBinStore,LZString,loadExecutionSDK} from './fragment-config.mjs';
 Object.assign(globalThis,{HashBinDocuments,LZString}); // t256 verification and established URL inspection surface.

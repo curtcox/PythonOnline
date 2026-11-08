@@ -112,11 +112,11 @@ The editor and interface lineage comes from GraphvizOnline, ManimOnline, and Gnu
 
 The production app is [https://python.hashbin.page/](https://python.hashbin.page/). Deployment is managed by [HashBin's first-party deployment tool](https://github.com/curtcox/hashbin.org/blob/main/scripts/deploy-owned-apps.mjs).
 
-Shared application tools now come from the published Fragment Kit v0.4.1 pin. See the [app guide](docs/index.html) and [migration details](docs/fragment-kit-migration.html). Runtime pins stay exact; shared workflows use the immutable `v2` tag.
+Shared application tools now come from the published Fragment Kit v0.4.3 pin. See the [app guide](docs/index.html) and [migration details](docs/fragment-kit-migration.html). Runtime pins stay exact; shared workflows use the immutable `v2` tag.
 
 ## Compact interface
 
-This app uses released Fragment Kit v0.4.1 for compact controls, readable dialogs,
+This app uses released Fragment Kit v0.4.3 for compact controls, readable dialogs,
 and individual-pane or split workspace views. On phones, primary feedback stays
 visible while status details are available in More.
 Current deployment evidence is recorded in the [shared rollout status](https://github.com/curtcox/Tools-for-pages-with-state-in-URL-fragments/blob/main/todo/rollout-status.md).

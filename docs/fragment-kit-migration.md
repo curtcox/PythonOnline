@@ -1,6 +1,6 @@
 # Shared tools migration
 
-The app pins the published Fragment Kit v0.4.1 under `vendor/fragment-kit-v0.4.1`. Its production adapter is `src/fragment-config.mjs` and its single app config is `fragment-kit.config.json`. The registered public client ID stays in the existing HTML meta tag.
+The app pins the published Fragment Kit v0.4.3 under `vendor/fragment-kit-v0.4.3`. Its production adapter is `src/fragment-config.mjs` and its single app config is `fragment-kit.config.json`. The registered public client ID stays in the existing HTML meta tag.
 
 URL readers, CID verification, Publish, QR generation and scanning, sharing, drafts, scheduler, offline core, shell, tabs and gallery use the pinned kit. Legacy writers remain enabled until the fleet has v1 readers. The kit's immutable `v2` workflows are independent of the exact runtime version.
 
@@ -21,8 +21,8 @@ The registered hosted sandbox allows python.hashbin.page as its parent. Recovery
 ## AI pilot
 
 The source adds an opt-in Ask dialog and gallery chooser using published
-Fragment Kit 0.4.1. Its exact pin passed independent published-manifest verification.
-The existing 0.3.5 and 0.4.0 vendor directories are preserved. Actual production
+Fragment Kit 0.4.3. Its exact pin passed independent published-manifest verification.
+The existing 0.3.5, 0.4.0 and 0.4.1 vendor directories are preserved. Actual production
 receipts are recorded in [the AI rollout plan](https://github.com/curtcox/Tools-for-pages-with-state-in-URL-fragments/blob/main/todo/ai_plan.md).
 
 Ask offers paste handoff or a user-connected provider. Direct keys stay in memory;
