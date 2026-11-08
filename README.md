@@ -106,10 +106,17 @@ Pushes to `main` deploy the repository root through `.github/workflows/deploy.ym
 
 This unofficial tool is not affiliated with the Python Software Foundation or Pyodide. Python is a PSF trademark; the app uses its own icon. CPython is PSF-licensed and Pyodide is MPL-2.0; both are loaded unmodified from the pinned CDN, and packages retain their own licenses.
 
-The editor and interface lineage comes from GraphvizOnline, ManimOnline, and GnuplotOnline. See [LICENSE-graphvizonline](LICENSE-graphvizonline). Ace is BSD-licensed ([notice](ace/LICENSE)); svg-pan-zoom is BSD-licensed ([notice](LICENSE-svg-pan-zoom)); the QR encoder is Project Nayuki's MIT-licensed implementation, with its notice retained in `vendor/fragment-kit-v0.3.3/src/qr/encode.js`. lz-string's notice is in `vendor/LICENSE-lz-string`. `src/py/turtle.py` is an original implementation, not a copy of CPython's Tk module.
+The editor and interface lineage comes from GraphvizOnline, ManimOnline, and GnuplotOnline. See [LICENSE-graphvizonline](LICENSE-graphvizonline). Ace is BSD-licensed ([notice](ace/LICENSE)); svg-pan-zoom is BSD-licensed ([notice](LICENSE-svg-pan-zoom)); the QR encoder is Project Nayuki's MIT-licensed implementation, with its notice retained in `vendor/fragment-kit-v0.3.5/src/qr/encode.js`. lz-string's notice is in `vendor/LICENSE-lz-string`. `src/py/turtle.py` is an original implementation, not a copy of CPython's Tk module.
 
 ## Canonical HashBin address
 
 The production app is [https://python.hashbin.page/](https://python.hashbin.page/). Deployment is managed by [HashBin's first-party deployment tool](https://github.com/curtcox/hashbin.org/blob/main/scripts/deploy-owned-apps.mjs).
 
 Shared application tools now come from the pinned Fragment Kit v0.3.3. See the [app guide](docs/index.html) and [migration details](docs/fragment-kit-migration.html). Runtime pins stay exact; shared workflows use the immutable `v2` tag.
+
+## Compact interface
+
+This app uses released Fragment Kit v0.3.5 for compact controls, readable dialogs,
+and individual-pane or split workspace views. On phones, primary feedback stays
+visible while status details are available in More.
+Current deployment evidence is recorded in the [shared rollout status](https://github.com/curtcox/Tools-for-pages-with-state-in-URL-fragments/blob/main/todo/rollout-status.md).
