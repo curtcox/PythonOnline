@@ -2,7 +2,7 @@
 (function (self) { self.OfflineAssets = {
   "pyodide": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/",
   "prefix": "pythononline",
-  "version": "pythononline-7ab129f7efd5f60b",
+  "version": "pythononline-2463a85aae0ea010",
   "assets": [
     "LICENSE-graphvizonline",
     "LICENSE-svg-pan-zoom",
@@ -403,7 +403,7 @@
     "src/python-client.js": "3a03988ecc252b30a357f3b0598e2c6ed5fdbf220457b34aef019386e7e4b981",
     "src/python-core.js": "a573b7c40832e86dff0eccfe2328f25de2abb6bdcc7d36fc47a9c3dcfa3a18b8",
     "src/python-home.js": "7d88ede6784ff77a75c2a17d11bd8fb551ee3ee175ba059672b4a6a986eb6b9b",
-    "src/python-sandbox.js": "2f630f5b99892d7a0d2a0922597320ea566d8e40ffa9a59f79a53900580a0f9a",
+    "src/python-sandbox.js": "f894f5aba05de058f53198f8824e96dbb04395b1777897160ea26288472764eb",
     "src/python-storage.js": "90563a78a3a439ab8496b662ac1c8d5a2b932232edb01bb1264c297750d1ead5",
     "src/python-worker.js": "3e21837be07a2f1f03672f299ef3c352283bddd8e46139ea11d58c142a290681",
     "src/traceback.js": "19925838b3f7e22f501ab1491f05ade4e895b15efa4d2501309f2fb5f962b7e1",

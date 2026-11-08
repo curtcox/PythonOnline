@@ -16,8 +16,15 @@ const PythonSandbox = {
       // Keep the rejected promise for its normal onerror path without creating
       // an unhandled parent-page rejection in that gap.
       source.catch(() => {});
-      return sdk.createSandbox({ source, origin: persistent ? 'hosted' : 'opaque', clientId, runDomain,
-        base, proxy: [PYODIDE_URL, new URL('py/', base).href] });
+      const controller = new AbortController();
+      const worker = sdk.createSandbox({ source, origin: persistent ? 'hosted' : 'opaque', clientId, runDomain,
+        base, proxy: [PYODIDE_URL, new URL('py/', base).href],
+        fetch: (url, options) => fetch(url, { ...options, signal: controller.signal }) });
+      // Mode changes and navigation must cancel this sandbox's pending downloads,
+      // including a warm worker that has not finished importing Python yet.
+      const terminate = worker.terminate.bind(worker);
+      worker.terminate = () => { controller.abort(); terminate(); };
+      return worker;
     };
   }
 };
