@@ -20,8 +20,8 @@ The registered hosted sandbox allows python.hashbin.page as its parent. Recovery
 
 ## AI pilot candidate
 
-This branch adds an opt-in Ask dialog and gallery chooser using the unreleased
-Fragment Kit 0.4.0 candidate. Production is unchanged until the published-pin gate,
+This branch adds an opt-in Ask dialog and gallery chooser using
+Fragment Kit 0.4.0. Its exact pin must pass independent published-manifest verification. Production is unchanged until the published-pin gate,
 review and deployment succeed. The existing 0.3.5 vendor directory is preserved.
 
 Ask offers paste handoff or a user-connected provider. Direct keys stay in memory;

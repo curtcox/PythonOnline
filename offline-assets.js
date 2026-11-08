@@ -2,7 +2,7 @@
 (function (self) { self.OfflineAssets = {
   "pyodide": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/",
   "prefix": "pythononline",
-  "version": "pythononline-8fb0f0bec993bd19",
+  "version": "pythononline-d5553d29e842ac0c",
   "assets": [
     "LICENSE-graphvizonline",
     "LICENSE-svg-pan-zoom",
@@ -266,8 +266,8 @@
     "ai-suite.json": "9e65ed64b5069bb78cec60e5027042f12283cb6028f143defcc6fe22f3f351c3",
     "docs/256t-calls.html": "5aadf0ae8a575a2d9c15e4d9b7bde3d839085d05fbdf5fcb868c1f4d4e7d6f86",
     "docs/256t-calls.md": "d98695577f684e6b76f0ab0be4e37ff1ab5ddaecc7854001e94cb42f8a49f6b3",
-    "docs/fragment-kit-migration.html": "96956247260d076f511f4deac140cee4cd8ae3e1aaa129cd01f9f5c7a18a841b",
-    "docs/fragment-kit-migration.md": "3f94309e0552464ca6fb860fa09623ebe04dd25d1fc68714b2bd1bdb27b4ce9e",
+    "docs/fragment-kit-migration.html": "80f2b6799982365147dcbe56f513f5645e95aff421a1a97f9dd035dc8faf4eaf",
+    "docs/fragment-kit-migration.md": "83db9cbf0b88f545924f2e53dbdbd300affd7c28feb2b8eb28a8c36347da8e58",
     "docs/index.html": "741e00c47260df8cc9961389768a97b066dae30435aa639186b11c5e93d23ad4",
     "docs/index.md": "b8ab5f9eb6996a9294930d047b628ea38a2d67109a3a077fa60a7fe225d0a39f",
     "docs/persistent-files.html": "06c50e2e0bdf770ac4427003555ea799811fc56a6e21e603ba5727ad0a690c61",

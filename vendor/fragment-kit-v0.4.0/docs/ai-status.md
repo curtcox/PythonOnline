@@ -1,10 +1,14 @@
 # AI implementation status — 2026-11-08
 
-The source contains a **0.4.0 candidate**, not a completed rollout of
-[todo/ai_plan.md](../todo/ai_plan.md). The demo candidate was deployed from commit 13858e2. No AI-host deployment, Python production
-migration, public model/report upload, v0.4.0 tag or release is asserted here.
-The GitHub release API returned 404 for v0.4.0 during this work. Published v0.3.5
-vendor bytes and release tags have not been changed.
+This snapshot describes the implemented **0.4.0 runtime** and the remaining rollout
+of [todo/ai_plan.md](../todo/ai_plan.md). The demo was deployed from commit 67b8464.
+The runtime and demo passed [Linux CI in Chromium, Firefox and WebKit](https://github.com/curtcox/Tools-for-pages-with-state-in-URL-fragments/actions/runs/42515655778).
+AI-host deployment, Python production migration and public model/report uploads
+remain open. Published v0.3.5 bytes and release tags have not been changed.
+
+This file is included in immutable kit pins. [The release page](https://github.com/curtcox/Tools-for-pages-with-state-in-URL-fragments/releases/tag/v0.4.0)
+and the source repository's `todo/ai_plan.md` hold later publication/deployment
+receipts; a generated archive or this snapshot alone does not prove publication.
 
 ## Local implementation
 
@@ -87,21 +91,26 @@ reported for load+generation. This is real WASM/model execution, not a test engi
 It is not a WebGPU, public CID hosting, remote-range or real Safari result. Model
 source commit: `bartowski/SmolLM2-135M-Instruct-GGUF@09816acd5d99df7be770d85ea30822623dab342c`.
 Manifest generation was local; neither weights nor manifest were published.
+A bounded HTTP probe of the commit-pinned Hugging Face GGUF URL followed its
+302 redirect, received 206 with `Content-Range: bytes 0-1023/105454432` and final
+`Access-Control-Allow-Origin: *`, and matched those 1024 bytes to the verified
+local model. This checks the remote range/CORS response, not an additional browser
+model run or a persistent guarantee about future CDN behavior.
 
 ## Plan phase gates still open
 
 | Phase | Candidate state | Required before marking done |
 | --- | --- | --- |
-| 0 — evidence | OpenAI success/streaming and real wllama injection verified | Real Safari/Firefox storage; Jev option limits; other-provider successful streams; remote HF ranges/CORS; permissions across real browsers |
+| 0 — evidence | OpenAI success/streaming and real wllama injection verified | Real Safari/Firefox storage; Jev option limits; other-provider successful streams;  permissions across real browsers |
 | 1 — contracts/core | Implemented and unit-tested | Candidate integrity checks pass; remote publication is separate |
 | 2 — Ask/paste/direct | Implemented; Chromium/WebKit/phone emulation passed | All three engines pass in Linux CI; real-device/provider coverage remains separate |
 | 3 — providers/decisions | Drivers, settings, emulation, chooser and fallback implemented | Jev is live-verified; other-provider successful streams and consumer adoption remain |
 | 4 — evaluation | Reference-checked runner, metrics, comparison/report APIs and manual live Notes run | Private saved cases and exact-match references are implemented; broader quality evidence and end-user report Publish remain consumer integration work |
 | 5 — AI host | Static implementation and staged artifact; real popup protocol tested with mocked provider | [Registry/header draft PR #242](https://github.com/curtcox/hashbin.org/pull/242) prepared; owner-approved deployment, live receipt and real storage/permission measurements remain |
-| 6 — browser models | Pinned real engine, verified cache/mirror logic and a real Chromium run | Public manifest/mirror acceptance, remote range/CORS tests and real GPU/device evidence |
+| 6 — browser models | Pinned real engine, verified cache/mirror logic and a real Chromium run | Public manifest/mirror acceptance and real GPU/device evidence |
 | 7 — gateway | Client, protocol and shared mocked feature contracts implemented | Any billed/production server is a separate project and is not shipped here |
 | 8 — Python pilot | Isolated integration, 25 reference pairs and 75 live hosted results; consumer checks passed | Published-pin gate, PR/review, approved deployment and published comparison report |
-| 9 — release | Versioned local candidate prepared | All required gates, actual remote tag/release and deployment receipts; existing tags never move |
+| 9 — release | Versioned runtime and demo prepared; all three CI engines pass | Actual remote tag/release receipt; remaining deployment gates stay separate; existing tags never move |
 
 ## Deployment artifacts
 
@@ -116,12 +125,12 @@ host is available. Accepting a change suppresses auto-run and returns to opaque
 execution. Site checks start fresh opaque sandboxes, bound output, enforce a
 30-second setup deadline and retain the existing five-second automatic-run limit.
 No shared/API key is embedded or copied into that checkout. Its existing published
-v0.3.5 pin is preserved; a local candidate v0.4.0 pin is additional, not a release.
+v0.3.5 pin is preserved; a local candidate v0.4.0 pin is additional, subject to the published-manifest gate.
 Its checks passed: 44 Node tests with package coverage, 19 Python tests, static /
 documentation / offline / vendor checks, the existing full Chromium and WebKit
 browser suites, and the new AI acceptance/reference test in both. The AI test
 confirms acceptance makes no automatic Python run. Firefox did not run locally.
-Shared consumer contracts also passed 80 checks in Chromium, WebKit and both phone layouts (48 demo-only AI checks intentionally skipped). The consumer has its own AI reference/acceptance checks. A pilot commit and patch are prepared for review; production remains unchanged.
+Shared consumer contracts also passed 80 checks in Chromium, WebKit and both phone layouts (48 demo-only AI checks intentionally skipped). The consumer has its own AI reference/acceptance checks. [Python pilot draft PR #5](https://github.com/curtcox/PythonOnline/pull/5) and a local patch are prepared for review; production remains unchanged.
 
 ## Sources used to implement drivers
 
