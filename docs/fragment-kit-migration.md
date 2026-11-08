@@ -1,6 +1,6 @@
 # Shared tools migration
 
-The app pins the published Fragment Kit v0.3.3 under `vendor/fragment-kit-v0.4.0`. Its production adapter is `src/fragment-config.mjs` and its single app config is `fragment-kit.config.json`. The registered public client ID stays in the existing HTML meta tag.
+The app pins the published Fragment Kit v0.3.3 under `vendor/fragment-kit-v0.4.1`. Its production adapter is `src/fragment-config.mjs` and its single app config is `fragment-kit.config.json`. The registered public client ID stays in the existing HTML meta tag.
 
 URL readers, CID verification, Publish, QR generation and scanning, sharing, drafts, scheduler, offline core, shell, tabs and gallery use the pinned kit. Legacy writers remain enabled until the fleet has v1 readers. The kit's immutable `v2` workflows are independent of the exact runtime version.
 
@@ -21,14 +21,15 @@ The registered hosted sandbox allows python.hashbin.page as its parent. Recovery
 ## AI pilot candidate
 
 This branch adds an opt-in Ask dialog and gallery chooser using
-Fragment Kit 0.4.0. Its exact pin must pass independent published-manifest verification. Production is unchanged until the published-pin gate,
+Fragment Kit 0.4.1. Its exact pin must pass independent published-manifest verification. Production is unchanged until the published-pin gate,
 review and deployment succeed. The existing 0.3.5 vendor directory is preserved.
 
 Ask offers paste handoff or a user-connected provider. Direct keys stay in memory;
 reload disconnects them. No key is embedded. Every paid route starts with a zero
 budget until the user sets caps and approves the destination. Unknown deployment
-origins offer paste only. The canonical editor and GitHub recovery copy use direct
-mode until the separate AI host is approved and verified live.
+origins offer paste only. The canonical editor uses the owner-approved AI host at
+`https://ai.hashbin.page/v0.4.0/`; the GitHub recovery copy uses direct mode.
+Deployment waits for live HTTPS/header/consent checks on the host.
 
 Proposals can change only source and program input. Acceptance uses the ordinary
 edit/draft path, writes a run-disabled URL, turns off persistent execution for the

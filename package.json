@@ -14,7 +14,7 @@
     "offline": "node scripts/update-offline.mjs",
     "serve": "python3 -m http.server 8000",
     "gallery:python": "node scripts/render-python-previews.mjs",
-    "test:contracts": "playwright test --config vendor/fragment-kit-v0.4.0/testing/playwright.config.js"
+    "test:contracts": "playwright test --config vendor/fragment-kit-v0.4.1/testing/playwright.config.js"
   },
   "devDependencies": {
     "playwright": "1.64.1",

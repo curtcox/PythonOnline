@@ -1,5 +1,5 @@
-import { createAi, createAskPanel, createAiSettings, createCompareModels } from '../vendor/fragment-kit-v0.4.0/src/ai/index.js';
-import { createDialog, createStorage, element } from '../vendor/fragment-kit-v0.4.0/src/index.js';
+import { createAi, createAskPanel, createAiSettings, createCompareModels } from '../vendor/fragment-kit-v0.4.1/src/ai/index.js';
+import { createDialog, createStorage, element } from '../vendor/fragment-kit-v0.4.1/src/index.js';
 /** Every probe is a fresh opaque sandbox, never the editor or persistent home. */
 export function createPythonAiCheck(sdk) {
   return ({ document, expected, signal }) => new Promise((resolve, reject) => {
@@ -26,8 +26,9 @@ export async function mountPythonAi({config,type,urlState,sdk,getSnapshot,getFin
   const button=element('button','Ask',{type:'button',id:'ask-open'});button.onclick=()=>{dialog.open();ask.open();};
   document.querySelector('.toolbar').prepend(button);
   createAiSettings({ai,container,onChange:ask.refreshModels});
+  let comparison;
   const compare=element('button','Compare models',{type:'button'});compare.onclick=async()=>{
-    try{const response=await fetch('ai-suite.json');if(!response.ok)throw new Error('AI suite is unavailable.');const ui=createCompareModels({ai,type,suite:await response.json(),storage,getSnapshot,getFingerprint,onApply,urlState});await ui.refresh();ui.open();}
+    try{if(!comparison){const response=await fetch('ai-suite.json');if(!response.ok)throw new Error('AI suite is unavailable.');comparison=createCompareModels({ai,type,suite:await response.json(),storage,getSnapshot,getFingerprint,onApply,urlState});}await comparison.refresh();comparison.open();}
     catch(error){status(error.message);}
   };container.append(compare);
   return {cancel:ask.cancel,ai,type};

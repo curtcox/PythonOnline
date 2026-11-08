@@ -12,7 +12,8 @@
   "ai": {
     "deployments": {
       "https://python.hashbin.page/": {
-        "connection": "direct"
+        "connection": "host",
+        "host": "https://ai.hashbin.page/v0.4.0/"
       },
       "https://curtcox.github.io/PythonOnline/": {
         "connection": "direct"

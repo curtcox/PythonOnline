@@ -27,7 +27,7 @@ const timeout = 120000;
   // Opening a program URL must never require a replacement confirmation.
   await context.addInitScript(() => { window.confirm = () => { throw Error('Unexpected replacement confirmation'); }; });
   let phase = 'startup'; const checkpoint = text => { phase = text; console.log(text); };
-  const errors = []; page.on('pageerror',error=>{ errors.push(String(error)); if (process.env.DEBUG) console.log('pageerror at', phase, String(error)); }); if (process.env.DEBUG) { page.on('console',m=>console.log('console:',m.text())); context.on('weberror',e=>console.log('weberror:',String(e.error()))); }
+  const errors = []; page.on('pageerror',error=>{ errors.push({phase,error:String(error)}); if (process.env.DEBUG) console.log('pageerror at', phase, String(error)); }); if (process.env.DEBUG) { page.on('console',m=>console.log('console:',m.text())); context.on('weberror',e=>console.log('weberror:',String(e.error()))); }
   async function ready() { await page.waitForFunction(()=>!!globalThis.PythonOnline); }
   async function preloadsReady() {
     // Going offline in the middle of an earlier preload cancels its in-flight

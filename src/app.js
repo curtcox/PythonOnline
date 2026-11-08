@@ -1,8 +1,8 @@
 import { mountPythonAi } from './ai.mjs';
-import { handleAiCallback } from '../vendor/fragment-kit-v0.4.0/src/ai/index.js';
+import { handleAiCallback } from '../vendor/fragment-kit-v0.4.1/src/ai/index.js';
 let aiCallback=false, aiCallbackError;
 try {aiCallback=handleAiCallback();}catch(error){aiCallbackError=error;}
-import {RenderScheduler,HashBinPanel,compactShell,createShell,mountMobileTabs,createShareDialog,createQrDialog} from '../vendor/fragment-kit-v0.4.0/src/index.js';
+import {RenderScheduler,HashBinPanel,compactShell,createShell,mountMobileTabs,createShareDialog,createQrDialog} from '../vendor/fragment-kit-v0.4.1/src/index.js';
 import PythonDrafts from './editor-drafts.mjs';
 import {config,type,urlState,HashBinDocuments,HashBinStore,LZString,loadExecutionSDK} from './fragment-config.mjs';
 Object.assign(globalThis,{HashBinDocuments,LZString}); // t256 verification and established URL inspection surface.
@@ -155,6 +155,10 @@ editor.session.on('change', edited); $('stdin').oninput = edited;
 $('autorun').onchange = () => { edited(); if ($('autorun').checked) run('auto'); };
 window.addEventListener('offline-before-reload', persist);
 window.addEventListener('beforeunload', persist);
+// Release pending interpreter loads before a document leaves the screen. Rebuild
+// the client when the browser restores this document from its back/forward cache.
+window.addEventListener('pagehide',()=>{scheduler.cancel();client.dispose();ai?.cancel();ai?.ai.disconnect();});
+window.addEventListener('pageshow',event=>{if(event.persisted){client=makeClient();if(globalThis.PythonOnline)PythonOnline.client=client;$('stop').disabled=true;state(navigationError?'error':'idle');status('Ready — press Run (Ctrl+Enter).');}});
 drafts.mount($('more'), value => { panel.cancelLoad(); scheduler.cancel(); client.stop(); output.clear(); clearAnnotation(); isolateIncomingProgram(); saved = null; apply(value); history.replaceState(null, '', links().fallback); selectTab('code'); status('Saved work restored — press Run.'); });
 $('offline-packages').onclick = async () => {
   if (!navigator.serviceWorker?.controller) { $('package-status').textContent = 'Wait for offline setup, then retry.'; return; }
