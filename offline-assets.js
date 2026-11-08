@@ -2,7 +2,7 @@
 (function (self) { self.OfflineAssets = {
   "pyodide": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/",
   "prefix": "pythononline",
-  "version": "pythononline-8945346b458e2c79",
+  "version": "pythononline-15b8f19db9e1ebf4",
   "assets": [
     "LICENSE-graphvizonline",
     "LICENSE-svg-pan-zoom",
@@ -310,7 +310,7 @@
     "examples/welcome.py": "d5b6a4a1ba5d20e0a8ab9bb5e81b8c4ead3b687ef843d545d4736f53ecf9108c",
     "examples/word-count.py": "0baa63399fa6cef9669ecc73d1ffeaf4f9ddec6cc0b3e5790ef36eabc14ce05b",
     "fragment-kit.config.json": "6ed9b4504f22c33bd7a8f65ff2adb4e49d5f55a9238dec618d02d968a08cfe31",
-    "gallery.html": "4fe7c3e396958e27d7d91b0854b608136d92bf7202fa9e2138d27a23d89436bf",
+    "gallery.html": "215b710f50b6012d9be1eaa760d6457872def4d6e1eab7b2a639d8af9a177e6f",
     "gallery/covers/256t-apply.png": "1917aed8ddf38009f72896582c677a55fbf7bc77d6b13d01771902abf44fced9",
     "gallery/covers/256t-call.png": "8746d0d4c2fd0989b3213be7c2ea64d65d02c17c9a30c77e32541e40745db55d",
     "gallery/covers/256t-function.png": "3812d3185ff9c98ee743280fc09a114bab3b07973da3e77b5d84720a71cf49b9",
