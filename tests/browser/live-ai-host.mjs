@@ -7,9 +7,9 @@ const root=path.resolve('vendor/fragment-kit-v0.4.3'),hostOrigin='https://ai.has
 const hostURL=hostOrigin+'/v0.4.0/host.html',ref='openai:gpt-4.1-mini-2025-04-14',key='synthetic-host-acceptance-key';
 const records=[];
 await fs.mkdir('test-results',{recursive:true});
-const engine=process.env.BROWSER||'chromium';
-if(!['chromium','firefox','webkit'].includes(engine))throw Error('Unknown browser.');
-for(const [engine,launcher] of Object.entries({[engine]:{chromium,firefox,webkit}[engine]})){
+const selectedEngine=process.env.BROWSER||'chromium';
+if(!['chromium','firefox','webkit'].includes(selectedEngine))throw Error('Unknown browser.');
+for(const [engine,launcher] of Object.entries({[selectedEngine]:{chromium,firefox,webkit}[selectedEngine]})){
  const browser=await launcher.launch({headless:true});
  try{
   const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(String(error)));
@@ -41,4 +41,4 @@ for(const [engine,launcher] of Object.entries({[engine]:{chromium,firefox,webkit
   await context.close();
  }finally{await browser.close();}
 }
-await fs.writeFile(`test-results/ai-host-${engine}.json`,JSON.stringify({date:new Date().toISOString(),host:hostURL,appOrigin,records},null,2)+'\n');console.log(JSON.stringify(records));
+await fs.writeFile(`test-results/ai-host-${selectedEngine}.json`,JSON.stringify({date:new Date().toISOString(),host:hostURL,appOrigin,records},null,2)+'\n');console.log(JSON.stringify(records));
