@@ -48,6 +48,7 @@ test('Shiny and Gradio gallery samples execute with real packages and updated in
   const shiny = catalog.find(sample => sample.id === 'shiny');
   let result = await run(shiny.src, shiny.stdin);
   assert.equal(result.ok, true, result.error);
+  assert.equal(core.pyodide.runPython("__import__('importlib.metadata').metadata.version('shinychat')"), '0.1.0');
   assert.match(result.text, /Total: \$36[\s\S]*Total: \$60/);
   assert.match(result.items.find(item => item.type === 'html').data, /<table>[\s\S]*\$36[\s\S]*\$60/);
   result = await run(shiny.src, '2\n7\n');

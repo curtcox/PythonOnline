@@ -1,4 +1,4 @@
-import {LocalDrafts} from '../vendor/fragment-kit-v0.3.5/src/index.js';
+import {LocalDrafts} from '../vendor/fragment-kit-v0.4.3/src/index.js';
 export default class PythonDrafts extends LocalDrafts {
   constructor(storage){super({storage,key:'pythononline:work',parse:text=>{const value=JSON.parse(text);return typeof value?.src==='string'&&(value.python?.stdin==null||typeof value.python.stdin==='string')?value:null;}});}
   history(){

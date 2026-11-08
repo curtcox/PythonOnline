@@ -57,7 +57,7 @@ self.addEventListener('fetch',event=>{
     return response; // Mismatched rebuilt packages may execute online, never enter a pinned cache.
   })());
 });
-self.FragmentKitOfflineConfig={extraCaches:[packageCache],onMessage(event){
+self.FragmentKitOfflineConfig={preserveCache:name=>name.startsWith('pythononline-ai-models-'),extraCaches:[packageCache],onMessage(event){
   if(event.data?.type!=='cache-packages')return;
   return(async()=>{
     const port=event.ports[0];

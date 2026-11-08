@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const {urlState,config,type}=require('../src/fragment-config.mjs');
-const {createUrlState}=require('../vendor/fragment-kit-v0.3.5/src/index.js');
+const {createUrlState}=require('../vendor/fragment-kit-v0.4.3/src/index.js');
 const corpus=require('./legacy-urls.json'),canonical=createUrlState({config,type});
 for(const entry of corpus.cases.filter(entry=>entry.kind==='source'))test('production adapter retains '+entry.id,()=>{
  const intent=urlState.parse(entry.href);assert.equal(intent.kind,'source');

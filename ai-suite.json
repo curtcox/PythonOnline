@@ -1,0 +1,1107 @@
+{
+  "format": "fragment-kit-eval-suite",
+  "version": 1,
+  "app": "python",
+  "cases": [
+    {
+      "id": "greeting",
+      "kind": "change",
+      "base": {
+        "src": "print('Hello')\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Change the greeting to Hello, world!",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "Hello, world!\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "print('Hello, world!')\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "print('Hello')\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "sum",
+      "kind": "change",
+      "base": {
+        "src": "numbers = [2, 4, 6]\nprint(numbers)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print the sum instead of the list.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "12\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "numbers = [2, 4, 6]\nprint(sum(numbers))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "numbers = [2, 4, 6]\nprint(numbers)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "mean",
+      "kind": "change",
+      "base": {
+        "src": "numbers = [3, 5, 7]\nprint(numbers)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print the arithmetic mean as a float.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "5.0\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "numbers = [3, 5, 7]\nprint(sum(numbers) / len(numbers))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "numbers = [3, 5, 7]\nprint(numbers)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "range",
+      "kind": "change",
+      "base": {
+        "src": "for n in range(1, 4):\n    print(n)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Include 4 in the printed range.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "1\n2\n3\n4\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "for n in range(1, 5):\n    print(n)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "for n in range(1, 4):\n    print(n)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "uppercase",
+      "kind": "change",
+      "base": {
+        "src": "print(input())\n",
+        "python": {
+          "stdin": "Ada\n",
+          "autorun": false
+        }
+      },
+      "request": "Uppercase the input before printing it.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "Ada\nADA\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "print(input().upper())\n",
+          "python": {
+            "stdin": "Ada\n",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "print(input())\n",
+          "python": {
+            "stdin": "Ada\n",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "square",
+      "kind": "change",
+      "base": {
+        "src": "value = 7\nprint(value)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print the square of value.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "49\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "value = 7\nprint(value ** 2)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "value = 7\nprint(value)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "join",
+      "kind": "change",
+      "base": {
+        "src": "words = ['red', 'blue']\nprint(words)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print the words separated by one space.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "red blue\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "words = ['red', 'blue']\nprint(' '.join(words))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "words = ['red', 'blue']\nprint(words)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "sort",
+      "kind": "change",
+      "base": {
+        "src": "values = [3, 1, 2]\nprint(values)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print the list sorted ascending.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "[1, 2, 3]\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "values = [3, 1, 2]\nprint(sorted(values))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "values = [3, 1, 2]\nprint(values)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "reverse",
+      "kind": "change",
+      "base": {
+        "src": "text = 'abc'\nprint(text)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print text reversed.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "cba\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "text = 'abc'\nprint(text[::-1])\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "text = 'abc'\nprint(text)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "count",
+      "kind": "change",
+      "base": {
+        "src": "items = ['a', 'b', 'a']\nprint(items)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print how many times a appears.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "2\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "items = ['a', 'b', 'a']\nprint(items.count('a'))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "items = ['a', 'b', 'a']\nprint(items)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "lookup",
+      "kind": "change",
+      "base": {
+        "src": "person = {'name': 'Ada', 'age': 36}\nprint(person)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print only the name.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "Ada\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "person = {'name': 'Ada', 'age': 36}\nprint(person['name'])\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "person = {'name': 'Ada', 'age': 36}\nprint(person)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "filter",
+      "kind": "change",
+      "base": {
+        "src": "values = [1, 2, 3, 4]\nprint(values)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print only the even values as a list.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "[2, 4]\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "values = [1, 2, 3, 4]\nprint([v for v in values if v % 2 == 0])\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "values = [1, 2, 3, 4]\nprint(values)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "format",
+      "kind": "change",
+      "base": {
+        "src": "amount = 2.5\nprint(amount)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print amount with exactly two decimal places.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "2.50\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "amount = 2.5\nprint(f'{amount:.2f}')\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "amount = 2.5\nprint(amount)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "minimum",
+      "kind": "change",
+      "base": {
+        "src": "values = [8, 2, 5]\nprint(values)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print the minimum value.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "2\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "values = [8, 2, 5]\nprint(min(values))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "values = [8, 2, 5]\nprint(values)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "maximum",
+      "kind": "change",
+      "base": {
+        "src": "values = [8, 2, 5]\nprint(values)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print the maximum value.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "8\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "values = [8, 2, 5]\nprint(max(values))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "values = [8, 2, 5]\nprint(values)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "length",
+      "kind": "change",
+      "base": {
+        "src": "word = 'fragment'\nprint(word)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print the number of letters.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "8\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "word = 'fragment'\nprint(len(word))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "word = 'fragment'\nprint(word)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "split",
+      "kind": "change",
+      "base": {
+        "src": "text = 'one,two,three'\nprint(text)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Split on commas and print the resulting list.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "['one', 'two', 'three']\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "text = 'one,two,three'\nprint(text.split(','))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "text = 'one,two,three'\nprint(text)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "strip",
+      "kind": "change",
+      "base": {
+        "src": "text = '  hello  '\nprint(text)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Remove surrounding spaces before printing.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "hello\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "text = '  hello  '\nprint(text.strip())\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "text = '  hello  '\nprint(text)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "replace",
+      "kind": "change",
+      "base": {
+        "src": "text = 'red balloon'\nprint(text)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Replace red with blue in the printed text.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "blue balloon\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "text = 'red balloon'\nprint(text.replace('red', 'blue'))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "text = 'red balloon'\nprint(text)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "factorial",
+      "kind": "change",
+      "base": {
+        "src": "import math\nprint(5)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print the factorial of 5.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "120\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "import math\nprint(math.factorial(5))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "import math\nprint(5)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "sqrt",
+      "kind": "change",
+      "base": {
+        "src": "import math\nprint(81)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print the square root of 81.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "9.0\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "import math\nprint(math.sqrt(81))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "import math\nprint(81)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "squares",
+      "kind": "change",
+      "base": {
+        "src": "print(list(range(1, 4)))\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print a list of squares for 1 through 3.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "[1, 4, 9]\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "print([n*n for n in range(1, 4)])\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "print(list(range(1, 4)))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "celsius",
+      "kind": "change",
+      "base": {
+        "src": "fahrenheit = 68\nprint(fahrenheit)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Convert Fahrenheit to Celsius and print it as a float.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "20.0\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "fahrenheit = 68\nprint((fahrenheit - 32) * 5 / 9)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "fahrenheit = 68\nprint(fahrenheit)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "binary",
+      "kind": "change",
+      "base": {
+        "src": "value = 10\nprint(value)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print its binary representation with the 0b prefix.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "0b1010\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "value = 10\nprint(bin(value))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "value = 10\nprint(value)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    },
+    {
+      "id": "round",
+      "kind": "change",
+      "base": {
+        "src": "value = 3.14159\nprint(value)\n",
+        "python": {
+          "stdin": "",
+          "autorun": false
+        }
+      },
+      "request": "Print value rounded to two decimal places.",
+      "checks": [
+        {
+          "type": "valid"
+        },
+        {
+          "type": "unchangedFields",
+          "fields": [
+            "/python"
+          ]
+        },
+        {
+          "type": "site",
+          "name": "runsAndOutputs",
+          "expected": "3.14\n"
+        }
+      ],
+      "reference": {
+        "good": {
+          "src": "value = 3.14159\nprint(round(value, 2))\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        },
+        "bad": {
+          "src": "value = 3.14159\nprint(value)\n",
+          "python": {
+            "stdin": "",
+            "autorun": false
+          }
+        }
+      }
+    }
+  ]
+}

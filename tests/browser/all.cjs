@@ -27,7 +27,7 @@ const timeout = 120000;
   // Opening a program URL must never require a replacement confirmation.
   await context.addInitScript(() => { window.confirm = () => { throw Error('Unexpected replacement confirmation'); }; });
   let phase = 'startup'; const checkpoint = text => { phase = text; console.log(text); };
-  const errors = []; page.on('pageerror',error=>{ errors.push(String(error)); if (process.env.DEBUG) console.log('pageerror at', phase, String(error)); }); if (process.env.DEBUG) { page.on('console',m=>console.log('console:',m.text())); context.on('weberror',e=>console.log('weberror:',String(e.error()))); }
+  const errors = []; page.on('pageerror',error=>{ errors.push({phase,error:String(error),stack:error.stack}); if (process.env.DEBUG) console.log('pageerror at', phase, String(error)); }); if (process.env.DEBUG) { page.on('console',m=>console.log('console:',m.text())); context.on('weberror',e=>console.log('weberror:',String(e.error()))); }
   async function ready() { await page.waitForFunction(()=>!!globalThis.PythonOnline); }
   async function preloadsReady() {
     // Going offline in the middle of an earlier preload cancels its in-flight
@@ -58,7 +58,7 @@ const timeout = 120000;
     assert.deepEqual(await page.evaluate(()=>[...document.querySelectorAll('iframe[title="Code sandbox"]')].map(frame=>frame.getAttribute('sandbox')).filter(value=>value!=='allow-scripts')),[]);
     checkpoint('Checking hosted Python filesystem persistence and incoming-link isolation');
     await page.locator('#more-toggle').click();
-    await page.locator('#persistent-home').check(); await page.locator('#fk-more-drawer .fk-close').click();
+    await preloadsReady(); await page.locator('#persistent-home').check(); await page.locator('#fk-more-drawer .fk-close').click();
     await run('from pathlib import Path\nPath("persistent-test.txt").write_text("files survive")\nprint("written")');
     assert.equal(await page.locator('body').getAttribute('data-state'),'done');
     assert.match(await page.locator('#home-status').innerText(),/Files saved/);
@@ -70,26 +70,32 @@ const timeout = 120000;
     await run('print(open("persistent-test.txt").read())');
     assert.match(await page.locator('#output').innerText(),/files survive/);
     // A locally enabled preference survives the bare homepage; every explicit document URL resets it.
-    await page.evaluate(()=>history.replaceState(null,'','/?run=0')); await page.reload(); await ready();
+    await preloadsReady(); await page.evaluate(()=>history.replaceState(null,'','/?run=0')); await page.reload(); await ready();
     assert.equal(await page.locator('#persistent-home').isChecked(),true);
     await run('print(open("persistent-test.txt").read())');
     assert.match(await page.locator('#output').innerText(),/files survive/);
     const linkedSource = await page.evaluate(()=>PythonOnline.snapshot().src);
-    await page.goto(base+'/?run=0#'+encodeURIComponent(linkedSource)); await ready();
+    checkpoint('Checking explicit link resets hosted storage');
+    await preloadsReady(); await page.goto(base+'/?run=0#'+encodeURIComponent(linkedSource)); await ready();
     assert.equal(await page.locator('#persistent-home').isChecked(),false);
     assert.equal(await page.evaluate(()=>localStorage.getItem('pythononline:persistent-home')),'false');
-    await page.goto(base+'/?run=0'); await ready();
+    // This assertion concerns the saved preference, not teardown during a download.
+    // Settle the new opaque worker before navigating away; WebKit reports
+    // cancelled same-origin fetches as access-control page errors on Linux.
+    await preloadsReady(); await page.goto(base+'/?run=0'); await ready();
     assert.equal(await page.locator('#persistent-home').isChecked(),false);
     await run('import js\nprint("link origin", js.self.origin)');
     assert.match(await page.locator('#output').innerText(),/link origin null/);
-    await page.locator('#more-toggle').click(); await page.locator('#persistent-home').check(); await page.locator('#fk-more-drawer .fk-close').click();
+    await preloadsReady(); await page.locator('#more-toggle').click(); await page.locator('#persistent-home').check(); await page.locator('#fk-more-drawer .fk-close').click();
     await run('print("explicitly enabled again")');
-    await page.evaluate(()=>{location.hash=encodeURIComponent(PythonOnline.snapshot().src);});
+    checkpoint('Checking fragment resets hosted storage');
+    await preloadsReady(); await page.evaluate(()=>{location.hash=encodeURIComponent(PythonOnline.snapshot().src);});
     await page.waitForFunction(()=>!document.getElementById('persistent-home').checked);
     await run('import js\nprint("fragment origin", js.self.origin)');
     assert.match(await page.locator('#output').innerText(),/fragment origin null/);
     await page.evaluate(()=>localStorage.removeItem('pythononline:persistent-home'));
     if (await page.locator('#fk-more-drawer').isVisible()) await page.locator('#fk-more-drawer .fk-close').click();
+    if(process.env.HOSTED_ONLY){await preloadsReady();assert.deepEqual(errors,[]);console.log(engine+': focused hosted storage checks passed');return;}
     checkpoint('Checking timeouts and Stop');
     // Auto-run timeout starts only once dependencies are ready; spare must recover.
     await page.evaluate(()=>{ PythonOnline.editor.setValue('while True: pass',-1); PythonOnline.run('auto'); }); await page.waitForFunction(()=>document.getElementById('status').textContent.includes('Stopped after 5 s'));
