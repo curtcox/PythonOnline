@@ -1,9 +1,16 @@
-import {RenderScheduler,HashBinPanel,compactShell,createShell,mountMobileTabs,createShareDialog,createQrDialog} from '../vendor/fragment-kit-v0.3.5/src/index.js';
+import { mountPythonAi } from './ai.mjs';
+import { handleAiCallback } from '../vendor/fragment-kit-v0.4.0/src/ai/index.js';
+let aiCallback=false, aiCallbackError;
+try {aiCallback=handleAiCallback();}catch(error){aiCallbackError=error;}
+import {RenderScheduler,HashBinPanel,compactShell,createShell,mountMobileTabs,createShareDialog,createQrDialog} from '../vendor/fragment-kit-v0.4.0/src/index.js';
 import PythonDrafts from './editor-drafts.mjs';
 import {config,type,urlState,HashBinDocuments,HashBinStore,LZString,loadExecutionSDK} from './fragment-config.mjs';
 Object.assign(globalThis,{HashBinDocuments,LZString}); // t256 verification and established URL inspection surface.
 /* Editor orchestration. Python and all package execution stay in the worker. */
 (async () => {
+if(aiCallback)return;
+if(aiCallbackError){document.getElementById('status').textContent=aiCallbackError.message;return;}
+let ai;
 let navigationError=null;
 const $ = id => document.getElementById(id), status = text => { $('status').textContent = navigationError??text; };
 const storage = kind => { try { return window[kind]; } catch (_) { return undefined; } };
@@ -21,7 +28,7 @@ editor.setTheme('ace/theme/chrome'); editor.session.setMode('ace/mode/python');
 editor.setOptions({ enableBasicAutocompletion: true, enableLiveAutocompletion: true, showPrintMargin: false, tabSize: 4, useSoftTabs: true, fontSize: 14 });
 editor.session.setUseWorker(false); editor.session.setUseWrapMode(true);
 const output = new OutputView($('output'), line => { selectTab('code'); editor.gotoLine(line, 0, true); editor.focus(); });
-let marker, applying = false, saved, clock, start, runSuppressed = false;
+let marker, applying = false, saved, clock, start, runSuppressed = false, aiHoldRun = false;
 function snapshot() { return { src: editor.getValue(), python: { stdin: $('stdin').value, autorun: $('autorun').checked } }; }
 function fingerprint() { return JSON.stringify(snapshot()); }
 function persist(edit = false) { drafts.attempt(snapshot(), edit === true); }
@@ -30,6 +37,7 @@ function inputCount() {
   $('input-count').textContent = count + (count === 1 ? ' line' : ' lines'); if($('mobile-input-count'))$('mobile-input-count').textContent=count||'';
 }
 function apply(value) {
+  ai?.cancel();
   applying = true;
   editor.setValue(value.src || '', -1); $('stdin').value = value.python?.stdin || '';
   $('autorun').checked = value.python?.autorun !== false; inputCount(); applying = false; drafts.opened();
@@ -88,7 +96,7 @@ function isolateIncomingProgram() {
 }
 $('persistent-home').onchange = () => changeStorage($('persistent-home').checked);
 const scheduler = new RenderScheduler({ detect: () => {}, render: () => run('auto'), renderDelay: 750 });
-function run(mode = 'manual') { navigationError=null; scheduler.cancel(); runSuppressed = false; persist(); client.run(editor.getValue(), $('stdin').value, mode); }
+function run(mode = 'manual') { navigationError=null; scheduler.cancel(); runSuppressed = false; aiHoldRun=false; persist(); client.run(editor.getValue(), $('stdin').value, mode); }
 $('run').onclick = () => run(); $('stop').onclick = () => { scheduler.cancel(); client.stop(); };
 editor.commands.addCommand({ name: 'run-python', bindKey: { win: 'Ctrl-Enter', mac: 'Command-Enter|Ctrl-Enter' }, exec: () => run() });
 document.addEventListener('keydown', event => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); run(); } });
@@ -141,7 +149,7 @@ function edited() {
   if (applying) return;navigationError=null;
   navigationRevision++;urlState.cancel();panel.cancelLoad(); persist(true); inputCount(); clearAnnotation();
   saved=null;urlState.write(snapshot(),{run:!runSuppressed});
-  scheduler.cancel(); if ($('autorun').checked) scheduler.schedule({ detect: false });
+  scheduler.cancel(); if ($('autorun').checked&&!aiHoldRun) scheduler.schedule({ detect: false });
 }
 editor.session.on('change', edited); $('stdin').oninput = edited;
 $('autorun').onchange = () => { edited(); if ($('autorun').checked) run('auto'); };
@@ -156,6 +164,7 @@ $('offline-packages').onclick = async () => {
   navigator.serviceWorker.controller.postMessage({ type: 'cache-packages' }, [channel.port2]);
 };
 async function openURL() {
+  ai?.cancel();aiHoldRun=false;
   navigationError=null;const ownRevision=++navigationRevision;urlState.cancel();panel.cancelLoad(); scheduler.cancel(); if (client.busy) client.stop(); saved = null;
   output.clear(); clearAnnotation();
   state('idle');
@@ -186,7 +195,10 @@ async function openURL() {
 store.retireLegacyTokens().catch(() => { /* Retried on the next load. */ });
 // Pasting a saved fragment into the current tab uses the same URL resolution as startup.
 let lastNavigation=location.href;const navigate=event=>{if(event.type==='hashchange'&&event.newURL!==location.href)return;if(location.href===lastNavigation)return;lastNavigation=location.href;void openURL();};window.addEventListener('hashchange',navigate);window.addEventListener('popstate',navigate);
+ai=await mountPythonAi({config,type,urlState:{...urlState,commit:(doc,options)=>urlState.commit(doc,{...options,run:false})},sdk,getSnapshot:snapshot,getFingerprint:fingerprint,container:$('more'),status,onApply:value=>{
+  scheduler.cancel();if(client.busy)client.stop();isolateIncomingProgram();runSuppressed=true;aiHoldRun=true;apply(value);edited();scheduler.cancel();status('AI change accepted — press Run (Ctrl+Enter).');
+}});
 await openURL();
 // A small public inspection surface is useful for accessibility tools and integration tests.
-globalThis.PythonOnline = { editor, client, output, snapshot, run, selectTab };
+globalThis.PythonOnline = { editor, client, output, snapshot, run, selectTab, ai };
 })();
